@@ -1,0 +1,16 @@
+*
+!/**/
+!*.*
+
+# build files
+bin
+build
+
+# macos files
+.DS_Store
+
+# xcode debug files
+*.dSYM
+
+# vscode files
+.vscode
