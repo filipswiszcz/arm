@@ -4,6 +4,8 @@
 
 void Engine::initialize(void) {
 
+    // glfw
+
     if (!ENGINE_ASSERT(glfwInit())) {
         // do smth with that bro
     }
@@ -27,7 +29,9 @@ void Engine::initialize(void) {
 
     glfwMakeContextCurrent(this->platform.window);
     // glfwSetInputMode(this->platform.window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-    glfwSwapInterval(0);
+    glfwSwapInterval(1);
+
+    // glew
 
 #ifndef __APPLE__
     glewExperimental = 1;
@@ -42,10 +46,47 @@ void Engine::initialize(void) {
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // do i need it here?
 
+    // clock
+    this->clock.lft = glfwGetTime();
+
 }
 
 void Engine::update(void) {
     while (!glfwWindowShouldClose(this->platform.window)) {
+
+        // clock
+        const double time = glfwGetTime();
+        this->clock.dt = time - this->clock.lft;
+        this->clock.lft = time;
+        
+        this->clock.framerate.timer += this->clock.dt;
+        this->clock.framerate.counter++;
+        if (this->clock.framerate.timer >= 1.0) {
+            this->clock.framerate.timer -= 1.0;
+            this->clock.framerate.counter = 0;
+        }
+
+        if (this->clock.dt > 0.25) {
+            this->clock.dt = 0.25;
+        }
+
+        this->clock.phys.accum += this->clock.dt;
+        
+        while (this->clock.phys.accum >= ENGINE_CLOCK_SIMULATION_FIXED_TIMESTEP) {
+
+            //..
+
+            this->clock.phys.accum -= ENGINE_CLOCK_SIMULATION_FIXED_TIMESTEP;
+        }
+
+        this->clock.anim.accum += this->clock.dt;
+
+        while (this->clock.anim.accum >= ENGINE_CLOCK_ANIMATION_FIXED_TIMESTEP) {
+
+            //..
+
+            this->clock.anim.accum -= ENGINE_CLOCK_ANIMATION_FIXED_TIMESTEP;
+        }
 
         glfwSwapBuffers(this->platform.window);
         glfwPollEvents();

@@ -18,13 +18,28 @@
 #define ENGINE_WINDOW_HEIGHT 1080
 #define ENGINE_WINDOW_NAME "ARM ENGINE (Build v0.0.1)"
 
+#define ENGINE_CLOCK_SIMULATION_FIXED_TIMESTEP (1.0 / 60.0) // 60 fps
+#define ENGINE_CLOCK_ANIMATION_FIXED_TIMESTEP (1.0 / 8.0) // 8 fps
+
 #define ENGINE_GRID_CELL_WIDTH 10 // px
 
 typedef struct {
     GLFWwindow *window;
-    uint32_t width, height;
+    u32 width, height;
     std::string name; // dont use string u mf
 } Platform_t;
+
+typedef struct {
+    struct {f64 accum;} phys;
+    struct {f64 accum;} anim;
+    
+    struct {
+        f64 timer;
+        u32 counter;
+    } framerate;
+
+    f64 lft, dt; // last frame time, delta time
+} Clock_t;
 
 class Engine {
 public:
@@ -33,6 +48,7 @@ public:
     void terminate(void);
 private:
     Platform_t platform;
+    Clock_t clock;
 };
 
 #endif // !ARM_ENGINE_H
