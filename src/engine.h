@@ -1,5 +1,5 @@
-#ifndef __ENGINE_H__
-#define __ENGINE_H__
+#ifndef ARM_ENGINE_H
+#define ARM_ENGINE_H
 
 #ifdef __APPLE__
     #define GL_SILENCE_DEPRECATION
@@ -10,6 +10,7 @@
     #include <GLFW/glfw3.h>
 #endif
 
+#include "common.h"
 #include "math.h" // temp
 #include "shader.h"
 
@@ -22,16 +23,16 @@
 typedef struct {
     GLFWwindow *window;
     uint32_t width, height;
-    std::string name;
+    std::string name; // dont use string u mf
 } Platform_t;
 
 class Engine {
 public:
-    void initialize();
-    void update();
-    void terminate();
+    void initialize(void);
+    void update(void);
+    void terminate(void);
 private:
     Platform_t platform;
 };
 
-#endif // !__ENGINE_H__
+#endif // !ARM_ENGINE_H

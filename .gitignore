@@ -2,8 +2,10 @@
 !/**/
 !*.*
 
-# build files
+# bin files
 bin
+
+# build files
 build
 
 # macos files
