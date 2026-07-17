@@ -13,6 +13,7 @@
 #include "common.h"
 #include "math.h" // temp
 #include "shader.h"
+#include "simulation.h"
 
 #define ENGINE_WINDOW_WIDTH 1920 // px
 #define ENGINE_WINDOW_HEIGHT 1080
@@ -49,6 +50,8 @@ public:
 private:
     Platform_t platform;
     Clock_t clock;
+    // Simulation simulation;
+    // grid polygons init
 };
 
 #endif // !ARM_ENGINE_H
