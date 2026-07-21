@@ -7,6 +7,10 @@
 
 namespace Renderer {
 
+typedef u16 shID; // shader
+typedef u16 maID; // material
+typedef u16 meID; // mesh
+
 enum class TextureStatus : u8 {
     SUCCESS = 0,
     FILE_NOT_FOUND,
@@ -27,16 +31,48 @@ private:
     TextureStatus destroy(void);
 };
 
-enum class RendererCommandType : u8 {
-    SPRITE = 0,
-    TEXT,
-    MESH,
-    LINE,
-    PRIMITIVE,
-    GRID
+struct Mesh {
+    u32 vao, vbo, ibo;
+    u32 counter; // mv to size?
+};
+
+struct Material {
+    shID id;
+    Vec4_t color;
+    f32 roughness, metallic;
+    u16 albedo; // ?
 };
 
 typedef struct {
+    Mat4_t transform;
+    Vec4_t tint;
+} GPUInstanceData_t;
+
+enum class RendererPass : u8 {
+    OPAQUE = 0,
+    TRANSPARENT,
+    UI
+};
+
+// enum class RendererCommandType : u8 {
+//     SPRITE = 0,
+//     TEXT,
+//     MESH,
+//     LINE,
+//     PRIMITIVE,
+//     GRID
+// };
+
+typedef struct {
+    u64 key; // sort key
+
+    meID mesh;
+    maID material;
+
+    u32 index;
+} RendererCommand_t;
+
+/*typedef struct {
     union {
 
         struct {
@@ -71,11 +107,29 @@ typedef struct {
     f32 rot;
 
     Vec3_t color;
-} RendererCommand_t;
+} RendererCommand_t;*/
 
 class Renderer {
 public:
+    void initialize(void);
+    void read_mesh(const char *path);
+    void push_cmd(meID mesh, maID material, Mat4_t transform, Vec4_t tint);
+    void draw(void);
+    void terminate(void);
 private:
+    static constexpr u32 MAX_MESHES = 64;
+    static constexpr u32 MAX_MATERIALS = 128;
+    static constexpr u32 MAX_INSTANCES = 2048;
+
+    struct Mesh meshes[MAX_MESHES];
+    struct Material materials[MAX_MATERIALS];
+
+    RendererCommand_t commands[MAX_INSTANCES];
+    u32 cmd_counter = 0;
+    GPUInstanceData_t instances[MAX_INSTANCES];
+    u32 inst_counter = 0;
+
+    u32 ssbo;
 };
 
 }
