@@ -2,8 +2,14 @@
 
 // public
 
-// renderer funcs..
-    // load/init/destroy textures, shaders
+void Renderer::initialize(void) {}
+
+void Renderer::draw(void) {
+    this->cmd_counter = 0;
+    this->inst_counter = 0;
+}
+
+void Renderer::terminate(void) {}
 
 // private
 

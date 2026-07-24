@@ -55,7 +55,7 @@ std::string Renderer::Shader::read(std::string &path) {
     return code;
 }
 
-Renderer::ShaderStatus Renderer::Shader::compile(int32_t &id, uint32_t type, const std::string &code) {
+Renderer::ShaderStatus Renderer::Shader::compile(i32 &id, u32 type, const std::string &code) {
     id = glCreateShader(type);
     if (id == 0) {
         return ShaderStatus::COMPILATION_FAILED;
@@ -66,7 +66,7 @@ Renderer::ShaderStatus Renderer::Shader::compile(int32_t &id, uint32_t type, con
 
     glCompileShader(id);
 
-    int32_t params;
+    i32 params;
     glGetShaderiv(id, GL_COMPILE_STATUS, &params);
     if (params == 0) {
         // print error in DEBUG
@@ -83,7 +83,7 @@ Renderer::ShaderStatus Renderer::Shader::compile(int32_t &id, uint32_t type, con
 Renderer::ShaderStatus Renderer::Shader::link() {
     glLinkProgram(this->program);
 
-    int32_t params;
+    i32 params;
     glGetProgramiv(this->program, GL_LINK_STATUS, &params);
     if (params == 0) {
         // print error in DEBUG

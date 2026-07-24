@@ -13,11 +13,12 @@
     #include <GLFW/glfw3.h>
 #endif
 
+#include "common.h"
 #include "math.h" // temp
 
 namespace Renderer {
 
-enum class ShaderStatus : uint8_t {
+enum class ShaderStatus : u8 {
     SUCCESS = 0,
     FILE_NOT_FOUND,
     COMPILATION_FAILED,
@@ -31,16 +32,16 @@ public:
         ids[0] = 0;
         ids[1] = 0;
     }
-    int32_t get_program() const {return program;}
+    i32 get_program() const {return program;}
     ShaderStatus initialize(std::string paths[2]);
     void set_vec3(std::string name, Vec3_t vec);
     void set_mat4(std::string name, Mat4_t mat);
 private:
-    int32_t ids[2]; // [0] = vert, [1] = frag
-    int32_t program;
+    i32 ids[2]; // [0] = vert, [1] = frag
+    i32 program;
     std::string read(std::string &path);
     // ShaderStatus read(std::string &path);
-    ShaderStatus compile(int32_t &id, uint32_t type, const std::string &code);
+    ShaderStatus compile(i32 &id, u32 type, const std::string &code);
     ShaderStatus link();
     // ShaderStatus delete();
 };

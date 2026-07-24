@@ -22,11 +22,12 @@ enum class TextureStatus : u8 {
 class Texture {
 public:
     Texture() : id(0), width(0), height(0), format(0), channels(0) {}
+    TextureStatus initialize(std::string path);
 private:
     u32 id;
     i32 width, height;
     i32 format, channels;
-    TextureStatus initialize(std::string &path);
+    std::string read(std::string &path); // ?
     TextureStatus bind(void);
     TextureStatus destroy(void);
 };
@@ -47,6 +48,11 @@ typedef struct {
     Mat4_t transform;
     Vec4_t tint;
 } GPUInstanceData_t;
+
+enum class RendererStatus : u8 {
+    SUCCESS = 0,
+
+};
 
 enum class RendererPass : u8 {
     OPAQUE = 0,
@@ -112,14 +118,21 @@ typedef struct {
 class Renderer {
 public:
     void initialize(void);
-    void read_mesh(const char *path);
+    void read_meshes(const char *path);
+    void read_materials(const char *path);
     void push_cmd(meID mesh, maID material, Mat4_t transform, Vec4_t tint);
+    // void push_cmd(const char *mesh, ..) look up table [str => meID?]?
     void draw(void);
     void terminate(void);
 private:
+    static constexpr u32 MAX_SHADERS = 16;
+    static constexpr u32 MAX_TEXTURES = 64;
     static constexpr u32 MAX_MESHES = 64;
     static constexpr u32 MAX_MATERIALS = 128;
     static constexpr u32 MAX_INSTANCES = 2048;
+
+    Shader shaders[MAX_SHADERS];
+    Texture textures[MAX_TEXTURES];
 
     struct Mesh meshes[MAX_MESHES];
     struct Material materials[MAX_MATERIALS];
