@@ -27,7 +27,7 @@ private:
     u32 id;
     i32 width, height;
     i32 format, channels;
-    std::string read(std::string &path); // ?
+    std::string read(const char *path);
     TextureStatus bind(void);
     TextureStatus destroy(void);
 };
@@ -39,38 +39,60 @@ struct Mesh {
 
 struct Material {
     shID id;
-    Vec4_t color;
+    v4 color;
     f32 roughness, metallic;
     u16 albedo; // ?
 };
 
 typedef struct {
-    Mat4_t transform;
-    Vec4_t tint;
+    m4 transform;
+    v4 tint;
 } GPUInstanceData_t;
+
+typedef struct {
+    v3 start, end;
+    v4 color;
+    f32 thickness;
+} GPULineData_t;
 
 enum class RendererStatus : u8 {
     SUCCESS = 0,
-
+    FILE_NOT_FOUND
 };
 
 enum class RendererPass : u8 {
-    OPAQUE = 0,
+    SHADOW = 0,
+    DEPTH_PREPASS,
+    OPAQUE,
+    SKYBOX,
+    ALPHA_TEST,
     TRANSPARENT,
-    UI
+    PARTICLES,
+    POST_PROCESS,
+    UI,
+    DEBUG
 };
 
-// enum class RendererCommandType : u8 {
-//     SPRITE = 0,
-//     TEXT,
-//     MESH,
-//     LINE,
-//     PRIMITIVE,
-//     GRID
-// };
+/*enum class RendererCommandType : u8 {
+    SPRITE = 0,
+    TEXT,
+    MESH,
+    LINE,
+    PRIMITIVE,
+    GRID
+};*/
+
+enum class RendererCommandType : u8 {
+    MESH = 0,
+    LINE,
+    TEXT,
+    GRID
+};
 
 typedef struct {
     u64 key; // sort key
+
+    RendererCommandType type;
 
     meID mesh;
     maID material;
@@ -118,10 +140,15 @@ typedef struct {
 class Renderer {
 public:
     void initialize(void);
+    void read_shaders(const char *path);
+    void read_textures(const char *path);
     void read_meshes(const char *path);
     void read_materials(const char *path);
-    void push_cmd(meID mesh, maID material, Mat4_t transform, Vec4_t tint);
+    void push_cmd(meID mesh, maID material, m4 transform, v4 tint);
     // void push_cmd(const char *mesh, ..) look up table [str => meID?]?
+    void push_cmd(v3 start, v3 end, v4 color, f32 thickness);
+    void push_cmd(const char *text, v2 pos, f32 scale, v4 color);
+    void push_cmd(v4 color); // ? (grid)
     void draw(void);
     void terminate(void);
 private:
@@ -130,6 +157,8 @@ private:
     static constexpr u32 MAX_MESHES = 64;
     static constexpr u32 MAX_MATERIALS = 128;
     static constexpr u32 MAX_INSTANCES = 2048;
+    static constexpr u32 MAX_LINES = 4096;
+    static constexpr u32 CHUNK_SIZE = 512;
 
     Shader shaders[MAX_SHADERS];
     Texture textures[MAX_TEXTURES];
@@ -141,8 +170,15 @@ private:
     u32 cmd_counter = 0;
     GPUInstanceData_t instances[MAX_INSTANCES];
     u32 inst_counter = 0;
+    GPULineData_t lines[MAX_LINES];
+    u32 line_counter = 0;
 
-    u32 ssbo;
+    struct {
+        struct {u32 ubo;} mesh;
+        struct {u32 vao, vbo;} line;
+        struct {u32 vao, vbo;} text;
+        struct {u32 vao;} grid;
+    } gpu;
 };
 
 }

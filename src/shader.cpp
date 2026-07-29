@@ -2,7 +2,9 @@
 
 // public
 
-Renderer::ShaderStatus Renderer::Shader::initialize(std::string paths[2]) {
+namespace Renderer {
+
+ShaderStatus Shader::initialize(std::string paths[2]) {
     std::string vs_code = this->read(paths[0]);
     std::string fs_code = this->read(paths[1]);
 
@@ -30,17 +32,31 @@ Renderer::ShaderStatus Renderer::Shader::initialize(std::string paths[2]) {
     return this->link();
 }
 
-void Renderer::Shader::set_vec3(std::string name, Vec3_t vec) {
+ShaderStatus Shader::use(void) {
+    // some asserts
+    glUseProgram(this->program);
+    return ShaderStatus::SUCCESS;
+}
+
+ShaderStatus Shader::set_uint(std::string name, u32 val) {
+    if (!ENGINE_ASSERT(name.c_str() != NULL)) {
+        return ShaderStatus::INVALID_PARAMETER;
+    }
+    glUniform1ui(glGetUniformLocation(this->program, name.c_str()), val);
+    return ShaderStatus::SUCCESS;
+}
+
+void Shader::set_vec3(std::string name, Vec3_t vec) {
     glUniform3f(glGetUniformLocation(this->program, name.c_str()), vec.x, vec.y, vec.z);
 }
 
-void Renderer::Shader::set_mat4(std::string name, Mat4_t mat) {
+void Shader::set_mat4(std::string name, Mat4_t mat) {
     glUniformMatrix4fv(glGetUniformLocation(this->program, name.c_str()), 1, 0, &mat.m[0][0]);
 }
 
 // private
 
-std::string Renderer::Shader::read(std::string &path) {
+std::string Shader::read(std::string &path) {
     std::ifstream file(path, std::ios::in | std::ios::binary | std::ios::ate);
 
     // assert file open
@@ -55,7 +71,7 @@ std::string Renderer::Shader::read(std::string &path) {
     return code;
 }
 
-Renderer::ShaderStatus Renderer::Shader::compile(i32 &id, u32 type, const std::string &code) {
+ShaderStatus Shader::compile(i32 &id, u32 type, const std::string &code) {
     id = glCreateShader(type);
     if (id == 0) {
         return ShaderStatus::COMPILATION_FAILED;
@@ -80,7 +96,7 @@ Renderer::ShaderStatus Renderer::Shader::compile(i32 &id, u32 type, const std::s
     return ShaderStatus::SUCCESS;
 }
 
-Renderer::ShaderStatus Renderer::Shader::link() {
+ShaderStatus Shader::link() {
     glLinkProgram(this->program);
 
     i32 params;
@@ -91,4 +107,6 @@ Renderer::ShaderStatus Renderer::Shader::link() {
     }
 
     return ShaderStatus::SUCCESS;
+}
+
 }

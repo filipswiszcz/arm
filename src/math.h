@@ -121,6 +121,8 @@ double length(const Vec3_t v);
 typedef struct Mat4 {
     float m[4][4];
 
+    Mat4() : Mat4(0.0f) {}
+
     explicit Mat4(float v) {
         for (int i = 0; i < 4; i++) {
             for (int j = 0; j < 4; j++) {
