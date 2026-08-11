@@ -12,7 +12,8 @@
 
 #include "common.h"
 #include "math.h" // temp
-#include "shader.h"
+#include "renderer.h"
+// #include "shader.h"
 #include "simulation.h"
 
 #define ENGINE_WINDOW_WIDTH 1920 // px
@@ -42,6 +43,14 @@ typedef struct {
     f64 lft, dt; // last frame time, delta time
 } Clock_t;
 
+typedef struct {
+    v3 pos, tpos, hpos;
+    f32 yaw, pitch;
+    f32 mx, my;
+    f32 speed, sens;
+    u8 lock;
+} Camera_t;
+
 class Engine {
 public:
     void initialize(void);
@@ -50,6 +59,11 @@ public:
 private:
     Platform_t platform;
     Clock_t clock;
+    
+    Renderer::Renderer renderer;
+
+    Camera_t camera;
+    
     // Simulation simulation;
     // grid polygons init
 };

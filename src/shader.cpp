@@ -67,8 +67,13 @@ std::string Shader::read(std::string &path) {
     std::string code(size, '\0');
 
     // assert file read
+    if (file.read(&code[0], size)) {
+        return code;
+    }
 
-    return code;
+    return "";
+
+    // return code;
 }
 
 ShaderStatus Shader::compile(i32 &id, u32 type, const std::string &code) {
@@ -86,6 +91,9 @@ ShaderStatus Shader::compile(i32 &id, u32 type, const std::string &code) {
     glGetShaderiv(id, GL_COMPILE_STATUS, &params);
     if (params == 0) {
         // print error in DEBUG
+        // char log[512];
+        // glGetShaderInfoLog(id, 512, NULL, log);
+        // std::cout << "SHADER COMPILE ERROR: " << log << std::endl;
 
         glDeleteShader(id);
         id = 0;

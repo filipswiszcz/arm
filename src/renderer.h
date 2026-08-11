@@ -1,9 +1,13 @@
 #ifndef ARM_RENDERER_H
 #define ARM_RENDERER_H
 
+#include <filesystem>
+
 #include "common.h"
 #include "math.h"
 #include "shader.h"
+
+#define DEBUG_RENDERER_SHADER_ID 0
 
 namespace Renderer {
 
@@ -50,6 +54,12 @@ typedef struct {
 } GPUInstanceData_t;
 
 typedef struct {
+    m4 view_proj;
+    v3 pos; // with padding (std140)
+    f32 padd;
+} GPUCameraData_t;
+
+typedef struct {
     v3 start, end;
     v4 color;
     f32 thickness;
@@ -83,10 +93,10 @@ enum class RendererPass : u8 {
 };*/
 
 enum class RendererCommandType : u8 {
-    MESH = 0,
-    LINE,
+    GRID = 0,
+    MESH,
     TEXT,
-    GRID
+    LINE
 };
 
 typedef struct {
@@ -149,7 +159,8 @@ public:
     void push_cmd(v3 start, v3 end, v4 color, f32 thickness);
     void push_cmd(const char *text, v2 pos, f32 scale, v4 color);
     void push_cmd(v4 color); // ? (grid)
-    void draw(void);
+    // void draw(void);
+    void draw(m4 view_proj, v3 cam_pos); // temp solution
     void terminate(void);
 private:
     static constexpr u32 MAX_SHADERS = 16;
@@ -174,10 +185,11 @@ private:
     u32 line_counter = 0;
 
     struct {
-        struct {u32 ubo;} mesh;
-        struct {u32 vao, vbo;} line;
-        struct {u32 vao, vbo;} text;
         struct {u32 vao;} grid;
+        struct {u32 ubo;} mesh;
+        struct {u32 ubo;} camera;
+        struct {u32 vao, vbo;} text;
+        struct {u32 vao, vbo;} line;
     } gpu;
 };
 
