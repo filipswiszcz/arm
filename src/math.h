@@ -101,7 +101,7 @@ typedef struct Vec4 {
         return {x / s, y / s, z / s, w / s};
     }
     Vec4 &operator/=(const float s) {
-        return (x / s, y / s, z / s, w / s, *this);
+        return (x /= s, y /= s, z /= s, w /= s, *this);
     }
 
 } Vec4_t;

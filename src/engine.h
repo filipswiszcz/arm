@@ -29,6 +29,7 @@ typedef struct {
     GLFWwindow *window;
     u32 width, height;
     std::string name; // dont use string u mf
+    i32 keys[512]; // weirdo
 } Platform_t;
 
 typedef struct {
@@ -46,7 +47,7 @@ typedef struct {
 typedef struct {
     v3 pos, tpos, hpos;
     f32 yaw, pitch;
-    f32 mx, my;
+    f64 mx, my;
     f32 speed, sens;
     u8 lock;
 } Camera_t;
@@ -66,6 +67,11 @@ private:
     
     // Simulation simulation;
     // grid polygons init
+
+    static void callback_key(GLFWwindow *window, i32 key, i32 scancode, i32 action, i32 mods);
+    void register_key(i32 key, i32 action);
+    void handle_keyboard(void);
+    void handle_mouse(void);
 };
 
 #endif // !ARM_ENGINE_H

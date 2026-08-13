@@ -27,7 +27,9 @@ void Engine::initialize(void) {
     }
 
     glfwMakeContextCurrent(this->platform.window);
-    // glfwSetInputMode(this->platform.window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetWindowUserPointer(this->platform.window, this);
+    glfwSetKeyCallback(this->platform.window, callback_key);
+    glfwSetInputMode(this->platform.window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSwapInterval(1);
 
     // glew
@@ -89,6 +91,10 @@ void Engine::update(void) {
         
         while (this->clock.phys.accum >= ENGINE_CLOCK_SIMULATION_FIXED_TIMESTEP) {
 
+            this->handle_keyboard();
+            this->handle_mouse();
+            // std::cout << this->camera.tpos.x << ", " << this->camera.tpos.y << ", " << this->camera.tpos.z << std::endl;
+
             //..
 
             this->clock.phys.accum -= ENGINE_CLOCK_SIMULATION_FIXED_TIMESTEP;
@@ -122,6 +128,59 @@ void Engine::terminate(void) {
 }
 
 // private
+
+void Engine::callback_key(GLFWwindow *window, i32 key, i32 scancode, i32 action, i32 mods) {
+    Engine *engine = static_cast<Engine*>(glfwGetWindowUserPointer(window));
+    if (engine != nullptr) engine->register_key(key, action);
+}
+
+void Engine::register_key(i32 key, i32 action) {
+    if (key < 0 && key > 511) return;
+    if (action == GLFW_PRESS) this->platform.keys[key] = 1;
+    else if (action == GLFW_RELEASE) this->platform.keys[key] = 0;
+}
+
+void Engine::handle_keyboard(void) {
+    if (this->platform.keys[GLFW_KEY_ESCAPE] == GLFW_PRESS) {
+        glfwSetWindowShouldClose(this->platform.window, 1);
+    }
+}
+
+void Engine::handle_mouse(void) {
+    double mx, my;
+    glfwGetCursorPos(this->platform.window, &mx, &my);
+
+    float offsetx = ((mx - this->camera.mx) * this->camera.sens);
+    float offsety = ((this->camera.my - my) * this->camera.sens);
+    
+    // std::cout << "x=" << offsetx << ", y=" << offsety << std::endl;
+    // std::cout << "offset_x=" << (this->camera.my - my) << std::endl;
+
+    this->camera.mx = mx;
+    this->camera.my = my;
+
+    // std::cout << "yaw=" << this->camera.yaw << ", pitch=" << this->camera.pitch << std::endl;
+
+    this->camera.yaw = (this->camera.yaw + offsetx);
+    this->camera.pitch = (this->camera.pitch + offsety);
+
+    std::cout << "yaw=" << this->camera.yaw << ", pitch=" << this->camera.pitch << std::endl;
+
+    if (this->camera.pitch > 89.0f) this->camera.pitch = 89.0f;
+    if (this->camera.pitch < -89.0f) this->camera.pitch = -89.0f;
+
+    v3 target = {
+        (cos(radians(this->camera.yaw)) * cos(radians(this->camera.pitch))),
+        sin(radians(this->camera.pitch)),
+        (sin(radians(this->camera.yaw)) * cos(radians(this->camera.pitch)))
+    };
+
+    // std::cout << target.x << ", " << target.y << ", " << target.z << std::endl;
+
+    this->camera.tpos = normalize(target);
+}
+
+// other
 
 int main(void) {
     Engine engine;
