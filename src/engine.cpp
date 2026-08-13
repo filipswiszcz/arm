@@ -46,7 +46,7 @@ void Engine::initialize(void) {
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // do i need it here?
+    glClearColor(1.0f, 1.0f, 1.0f, 1.0f); // do i need it here?
 
     // renderer
     this->renderer = Renderer::Renderer();
@@ -59,7 +59,7 @@ void Engine::initialize(void) {
     this->camera.hpos = Vec3(0.0f, 1.0f, 0.0f);
     this->camera.yaw = -90.0f;
     this->camera.pitch = 0.0f;
-    this->camera.speed = 8.0f;
+    this->camera.speed = 4.0f;
     this->camera.sens = 0.1f;
     this->camera.lock = 0;
 
@@ -93,7 +93,6 @@ void Engine::update(void) {
 
             this->handle_keyboard();
             this->handle_mouse();
-            // std::cout << this->camera.tpos.x << ", " << this->camera.tpos.y << ", " << this->camera.tpos.z << std::endl;
 
             //..
 
@@ -141,6 +140,14 @@ void Engine::register_key(i32 key, i32 action) {
 }
 
 void Engine::handle_keyboard(void) {
+    if (glfwGetMouseButton(this->platform.window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) {
+        if (this->platform.keys[GLFW_KEY_W] == GLFW_PRESS) {
+            this->camera.pos = (this->camera.pos + (this->camera.tpos * this->camera.speed * this->clock.dt));
+        }
+        if (this->platform.keys[GLFW_KEY_S] == GLFW_PRESS) {
+            this->camera.pos = (this->camera.pos - (this->camera.tpos * this->camera.speed * this->clock.dt));
+        }
+    }
     if (this->platform.keys[GLFW_KEY_ESCAPE] == GLFW_PRESS) {
         glfwSetWindowShouldClose(this->platform.window, 1);
     }
@@ -152,19 +159,12 @@ void Engine::handle_mouse(void) {
 
     float offsetx = ((mx - this->camera.mx) * this->camera.sens);
     float offsety = ((this->camera.my - my) * this->camera.sens);
-    
-    // std::cout << "x=" << offsetx << ", y=" << offsety << std::endl;
-    // std::cout << "offset_x=" << (this->camera.my - my) << std::endl;
 
     this->camera.mx = mx;
     this->camera.my = my;
 
-    // std::cout << "yaw=" << this->camera.yaw << ", pitch=" << this->camera.pitch << std::endl;
-
     this->camera.yaw = (this->camera.yaw + offsetx);
     this->camera.pitch = (this->camera.pitch + offsety);
-
-    std::cout << "yaw=" << this->camera.yaw << ", pitch=" << this->camera.pitch << std::endl;
 
     if (this->camera.pitch > 89.0f) this->camera.pitch = 89.0f;
     if (this->camera.pitch < -89.0f) this->camera.pitch = -89.0f;
@@ -174,8 +174,6 @@ void Engine::handle_mouse(void) {
         sin(radians(this->camera.pitch)),
         (sin(radians(this->camera.yaw)) * cos(radians(this->camera.pitch)))
     };
-
-    // std::cout << target.x << ", " << target.y << ", " << target.z << std::endl;
 
     this->camera.tpos = normalize(target);
 }

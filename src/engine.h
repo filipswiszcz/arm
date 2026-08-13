@@ -30,6 +30,7 @@ typedef struct {
     u32 width, height;
     std::string name; // dont use string u mf
     i32 keys[512]; // weirdo
+
 } Platform_t;
 
 typedef struct {
@@ -69,6 +70,7 @@ private:
     // grid polygons init
 
     static void callback_key(GLFWwindow *window, i32 key, i32 scancode, i32 action, i32 mods);
+    // static void callback_mouse(GLFWwindow *window, i32 button, i32 action, i32 mods);
     void register_key(i32 key, i32 action);
     void handle_keyboard(void);
     void handle_mouse(void);
