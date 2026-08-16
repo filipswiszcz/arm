@@ -37,6 +37,7 @@ public:
     ShaderStatus use(void);
     i32 get_program() const {return program;}
     ShaderStatus set_uint(std::string name, u32 val);
+    ShaderStatus set_float(std::string name, f32 val);
     void set_vec3(std::string name, v3 vec);
     void set_mat4(std::string name, m4 mat);
 private:

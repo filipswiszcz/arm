@@ -114,7 +114,7 @@ void Engine::update(void) {
         }
 
         // renderer
-        Mat4_t projection = perspective(radians(90.0f), ((float) this->platform.width / (float) this->platform.height), 0.1f, 1000.0f);
+        Mat4_t projection = perspective(radians(90.0f), ((float) this->platform.width / (float) this->platform.height), 0.01f, 100.0f);
         Mat4_t view = look_at(this->camera.pos, (this->camera.pos + this->camera.tpos), this->camera.hpos);
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -130,6 +130,9 @@ void Engine::update(void) {
         this->renderer.push_cmd(0, 0, model, {0.0f, 0.0f, 0.0f, 1.0f});
         model = translate(model, {5.0f, 0.0f, 0.0f});
         this->renderer.push_cmd(0, 0, model, {0.0f, 0.0f, 0.0f, 1.0f});
+
+        this->renderer.push_cmd({0.0f, 2.0f, 0.0f}, {0.0f, 0.0f, 0.0f, 1.0f}, 2.0f); // point
+        this->renderer.push_cmd({0.0f, 4.0f, 0.0f}, {0.0f, 0.0f, 0.0f, 1.0f}, 8.0f);
         
         this->renderer.draw((projection * view), this->camera.pos);
 

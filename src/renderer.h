@@ -10,6 +10,7 @@
 #define DEBUG_RENDERER_MESH_SHADER_ID 0
 #define DEBUG_RENDERER_GRID_SHADER_ID 1
 #define DEBUG_RENDERER_LINE_SHADER_ID 2
+#define DEBUG_RENDERER_DOT_SHADER_ID 3
 
 namespace Renderer {
 
@@ -38,11 +39,6 @@ private:
     TextureStatus destroy(void);
 };
 
-struct Mesh {
-    u32 vao, vbo, ibo;
-    u32 counter; // mv to size?
-};
-
 struct Material {
     shID id;
     v4 color;
@@ -50,10 +46,10 @@ struct Material {
     u16 albedo; // ?
 };
 
-typedef struct {
-    m4 transform;
-    v4 tint;
-} GPUInstanceData_t;
+struct Mesh {
+    u32 vao, vbo, ibo;
+    u32 counter; // mv to size?
+};
 
 typedef struct {
     m4 view_proj;
@@ -62,10 +58,21 @@ typedef struct {
 } GPUCameraData_t;
 
 typedef struct {
+    m4 transform;
+    v4 tint;
+} GPUInstanceData_t;
+
+typedef struct {
     v3 start, end;
     v4 color;
     f32 thickness;
 } GPULineData_t;
+
+typedef struct {
+    v3 pos;
+    v4 color;
+    f32 thickness;
+} GPUDotData_t;
 
 enum class RendererStatus : u8 {
     SUCCESS = 0,
@@ -84,15 +91,6 @@ enum class RendererPass : u8 {
     UI,
     DEBUG
 };
-
-/*enum class RendererCommandType : u8 {
-    SPRITE = 0,
-    TEXT,
-    MESH,
-    LINE,
-    PRIMITIVE,
-    GRID
-};*/
 
 enum class RendererCommandType : u8 {
     GRID = 0,
@@ -113,43 +111,6 @@ typedef struct {
     u32 index;
 } RendererCommand_t;
 
-/*typedef struct {
-    union {
-
-        struct {
-            Texture *texture;
-            Vec2_t scale, offset;
-        } sprite;
-        
-        struct {
-            char content[64]; // change to smth else (string from arena?)
-            f32 scale;
-        } text;
-
-        struct {
-            // mesh
-            // material
-        } mesh;
-
-        struct {
-            Vec3_t start, end;
-            f32 thickness;
-        } line;
-
-        struct {} primitive;
-
-        struct {} grid;
-    
-    } data;
-
-    RendererCommandType type;
-
-    Vec2_t pos, size;
-    f32 rot;
-
-    Vec3_t color;
-} RendererCommand_t;*/
-
 class Renderer {
 public:
     void initialize(void);
@@ -157,12 +118,12 @@ public:
     void read_textures(const char *path);
     void read_meshes(const char *path);
     void read_materials(const char *path);
+    void push_cmd(v4 color); // ? (grid)
     void push_cmd(meID mesh, maID material, m4 transform, v4 tint);
     // void push_cmd(const char *mesh, ..) look up table [str => meID?]?
-    void push_cmd(v3 start, v3 end, v4 color, f32 thickness);
-    // void push_cmd(v3 pos, v4 color, f32 thickness);
     void push_cmd(const char *text, v2 pos, f32 scale, v4 color);
-    void push_cmd(v4 color); // ? (grid)
+    void push_cmd(v3 start, v3 end, v4 color, f32 thickness);
+    void push_cmd(v3 pos, v4 color, f32 thickness);
     // void draw(void);
     void draw(m4 view_proj, v3 cam_pos); // temp solution
     void terminate(void);
@@ -171,10 +132,11 @@ public:
 private:
     static constexpr u32 MAX_SHADERS = 16;
     static constexpr u32 MAX_TEXTURES = 64;
-    static constexpr u32 MAX_MESHES = 64;
     static constexpr u32 MAX_MATERIALS = 128;
+    static constexpr u32 MAX_MESHES = 64;
     static constexpr u32 MAX_INSTANCES = 2048;
     static constexpr u32 MAX_LINES = 4096;
+    static constexpr u32 MAX_DOTS = 2048;
     static constexpr u32 CHUNK_SIZE = 512;
 
     Shader shaders[MAX_SHADERS];
@@ -189,13 +151,16 @@ private:
     u32 inst_counter = 0;
     GPULineData_t lines[MAX_LINES];
     u32 line_counter = 0;
+    GPUDotData_t dots[MAX_DOTS];
+    u32 dot_counter = 0;
 
     struct {
+        struct {u32 ubo;} camera;
         struct {u32 vao;} grid;
         struct {u32 ubo;} mesh;
-        struct {u32 ubo;} camera;
         struct {u32 vao, vbo;} text;
         struct {u32 vao, vbo;} line;
+        struct {u32 vao, vbo;} dot;
     } gpu;
 };
 

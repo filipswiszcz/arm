@@ -5,6 +5,13 @@ namespace Renderer {
 // public
 
 void Renderer::initialize(void) {
+    // camera
+    glGenBuffers(1, &this->gpu.camera.ubo);
+    glBindBuffer(GL_UNIFORM_BUFFER, this->gpu.camera.ubo);
+    glBufferData(GL_UNIFORM_BUFFER, sizeof(GPUCameraData_t), nullptr, GL_DYNAMIC_DRAW);
+    glBindBufferBase(GL_UNIFORM_BUFFER, 1, this->gpu.camera.ubo);
+
+    // grid
     glGenVertexArrays(1, &this->gpu.grid.vao);
 
     // mesh
@@ -13,11 +20,6 @@ void Renderer::initialize(void) {
     glBufferData(GL_UNIFORM_BUFFER, this->CHUNK_SIZE * sizeof(GPUInstanceData_t), nullptr, GL_DYNAMIC_DRAW);
     glBindBufferBase(GL_UNIFORM_BUFFER, 0, this->gpu.mesh.ubo);
 
-    // camera
-    glGenBuffers(1, &this->gpu.camera.ubo);
-    glBindBuffer(GL_UNIFORM_BUFFER, this->gpu.camera.ubo);
-    glBufferData(GL_UNIFORM_BUFFER, sizeof(GPUCameraData_t), nullptr, GL_DYNAMIC_DRAW);
-    glBindBufferBase(GL_UNIFORM_BUFFER, 1, this->gpu.camera.ubo);
     // text..
 
     // line
@@ -39,6 +41,23 @@ void Renderer::initialize(void) {
     glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, sizeof(GPULineData_t), (void*) ((2 * sizeof(v3)) + sizeof(v4)));
     glEnableVertexAttribArray(3);
     glVertexAttribDivisor(3, 1);
+
+    // point
+    glGenVertexArrays(1, &this->gpu.dot.vao);
+    glGenBuffers(1, &this->gpu.dot.vbo);
+    glBindVertexArray(this->gpu.dot.vao);
+    glBindBuffer(GL_ARRAY_BUFFER, this->gpu.dot.vbo);
+    glBufferData(GL_ARRAY_BUFFER, this->MAX_DOTS * sizeof(GPUDotData_t), nullptr, GL_DYNAMIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(GPUDotData_t), (void*) 0);
+    glEnableVertexAttribArray(0);
+    glVertexAttribDivisor(0, 1);
+    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(GPUDotData_t), (void*) (sizeof(v3)));
+    glEnableVertexAttribArray(1);
+    glVertexAttribDivisor(1, 1);
+    glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, sizeof(GPUDotData_t), (void*) (sizeof(v3) + sizeof(v4)));
+    glEnableVertexAttribArray(2);
+    glVertexAttribDivisor(2, 1);
 }
 
 void Renderer::read_shaders(const char *path) { // temp solution
@@ -51,6 +70,7 @@ void Renderer::read_shaders(const char *path) { // temp solution
     std::string grid_paths[2] = {"res/shader/grid.vs", "res/shader/grid.fs"};
     std::string mesh_paths[2] = {"res/shader/mesh.vs", "res/shader/mesh.fs"};
     std::string line_paths[2] = {"res/shader/line.vs", "res/shader/line.fs"};
+    std::string dot_paths[2] = {"res/shader/dot.vs", "res/shader/dot.fs"};
 
     this->shaders[DEBUG_RENDERER_GRID_SHADER_ID] = Shader();
     this->shaders[DEBUG_RENDERER_GRID_SHADER_ID].initialize(grid_paths);
@@ -60,6 +80,9 @@ void Renderer::read_shaders(const char *path) { // temp solution
 
     this->shaders[DEBUG_RENDERER_LINE_SHADER_ID] = Shader();
     this->shaders[DEBUG_RENDERER_LINE_SHADER_ID].initialize(line_paths);
+
+    this->shaders[DEBUG_RENDERER_DOT_SHADER_ID] = Shader();
+    this->shaders[DEBUG_RENDERER_DOT_SHADER_ID].initialize(dot_paths);
 
     glUniformBlockBinding(
         this->shaders[DEBUG_RENDERER_GRID_SHADER_ID].get_program(), 
@@ -80,6 +103,11 @@ void Renderer::read_shaders(const char *path) { // temp solution
         this->shaders[DEBUG_RENDERER_LINE_SHADER_ID].get_program(), 
         glGetUniformBlockIndex(this->shaders[DEBUG_RENDERER_LINE_SHADER_ID].get_program(), "u_Camera"), 1
     );
+
+    glUniformBlockBinding(
+        this->shaders[DEBUG_RENDERER_DOT_SHADER_ID].get_program(), 
+        glGetUniformBlockIndex(this->shaders[DEBUG_RENDERER_DOT_SHADER_ID].get_program(), "u_Camera"), 1
+    );
 }
 
 void Renderer::read_textures(const char *path) {}
@@ -87,6 +115,23 @@ void Renderer::read_textures(const char *path) {}
 void Renderer::read_meshes(const char *path) {}
 
 void Renderer::read_materials(const char *path) {}
+
+void Renderer::push_cmd(v4 color) {
+    u64 key = 0;
+    key |= ((u64) RendererPass::DEPTH_PREPASS << 60);
+
+    // RendererCommand_t command = {
+    //     .key = key,
+    //     .type = RendererCommandType::GRID
+    // };
+
+    RendererCommand_t command = {
+        key,
+        RendererCommandType::GRID
+    };
+
+    this->commands[this->cmd_counter++] = command;
+}
 
 void Renderer::push_cmd(meID mesh, maID material, m4 transform, v4 tint) {
 
@@ -118,6 +163,8 @@ void Renderer::push_cmd(meID mesh, maID material, m4 transform, v4 tint) {
     this->inst_counter++;
 }
 
+void Renderer::push_cmd(const char *text, v2 pos, f32 scale, v4 color) {}
+
 void Renderer::push_cmd(v3 start, v3 end, v4 color, f32 thickness) {
 
     this->lines[this->line_counter] = {start, end, color, thickness};
@@ -131,33 +178,35 @@ void Renderer::push_cmd(v3 start, v3 end, v4 color, f32 thickness) {
     //     .index = this->line_counter
     // };
 
-    RendererCommand_t command = {
-        key,
-        RendererCommandType::LINE,
-        this->line_counter
-    };
+    // RendererCommand_t command = {
+    //     key,
+    //     RendererCommandType::LINE,
+    //     this->line_counter
+    // };
+
+    RendererCommand_t command = {};
+    command.key = key;
+    command.type = RendererCommandType::LINE;
+    command.index = this->line_counter;
 
     this->commands[this->cmd_counter++] = command;
     this->line_counter++;
 }
 
-void Renderer::push_cmd(const char *text, v2 pos, f32 scale, v4 color) {}
+void Renderer::push_cmd(v3 pos, v4 color, f32 thickness) {
 
-void Renderer::push_cmd(v4 color) {
-    u64 key = 0;
-    key |= ((u64) RendererPass::DEPTH_PREPASS << 60);
+    this->dots[this->dot_counter] = {pos, color, thickness};
 
-    // RendererCommand_t command = {
-    //     .key = key,
-    //     .type = RendererCommandType::GRID
-    // };
+    u64 key;
+    key |= ((u64) RendererPass::DEBUG << 60);
 
-    RendererCommand_t command = {
-        key,
-        RendererCommandType::GRID
-    };
+    RendererCommand_t command = {};
+    command.key = key;
+    command.type = RendererCommandType::DOT;
+    command.index = this->dot_counter;
 
     this->commands[this->cmd_counter++] = command;
+    this->dot_counter++;
 }
 
 // void Renderer::draw(void) {
@@ -230,7 +279,7 @@ void Renderer::draw(m4 view_proj, v3 cam_pos) {
                     glBindBuffer(GL_ARRAY_BUFFER, this->gpu.line.vbo);
                     glBufferSubData(GL_ARRAY_BUFFER, 0, this->line_counter * sizeof(GPULineData_t), this->lines);
 
-                    glLineWidth(this->lines[this->cmd_counter].thickness); // does it even work somewhere?
+                    glLineWidth(this->lines[command->index].thickness); // does it even work somewhere?
 
                     glDrawArraysInstanced(GL_LINES, 0, 2, this->line_counter);
 
@@ -241,12 +290,31 @@ void Renderer::draw(m4 view_proj, v3 cam_pos) {
                     break;
                 }
             }
+            case RendererCommandType::DOT: {
+                if ((this->cmd_counter - 1) == i || this->commands[i + 1].type != RendererCommandType::DOT) {
+                    this->shaders[DEBUG_RENDERER_DOT_SHADER_ID].use();
+
+                    glBindVertexArray(this->gpu.dot.vao);
+                    glBindBuffer(GL_ARRAY_BUFFER, this->gpu.dot.vbo);
+                    glBufferSubData(GL_ARRAY_BUFFER, 0, this->dot_counter * sizeof(GPUDotData_t), this->dots);
+
+                    glDrawArraysInstanced(GL_POINTS, 0, 1, this->dot_counter);
+
+                    // std::cout << "DOT" << std::endl;
+
+                    glPointSize(1.0f);
+                    shader = 0xFFFF;
+                    break;
+                }
+                break;
+            }
         }
     }
 
     this->cmd_counter = 0;
     this->inst_counter = 0;
     this->line_counter = 0;
+    this->dot_counter = 0;
 }
 
 void Renderer::terminate(void) {}

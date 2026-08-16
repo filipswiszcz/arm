@@ -46,6 +46,14 @@ ShaderStatus Shader::set_uint(std::string name, u32 val) {
     return ShaderStatus::SUCCESS;
 }
 
+ShaderStatus Shader::set_float(std::string name, f32 val) {
+    if (!ENGINE_ASSERT(name.c_str() != NULL)) {
+        return ShaderStatus::INVALID_PARAMETER;
+    }
+    glUniform1f(glGetUniformLocation(this->program, name.c_str()), val);
+    return ShaderStatus::SUCCESS;
+}
+
 void Shader::set_vec3(std::string name, Vec3_t vec) {
     glUniform3f(glGetUniformLocation(this->program, name.c_str()), vec.x, vec.y, vec.z);
 }
