@@ -34,4 +34,14 @@ static_assert(sizeof(v4) == 16, "Vec4 must be exactly 16 bytes");
 // static_assert(sizeof(m3) == 36, "Mat3 must be exactly 36 bytes");
 static_assert(sizeof(m4) == 64, "Mat4 must be exactly 64 bytes");
 
+static Vec3_t PREVIEW_CUBE_VERTICES[8] = {
+    {-0.5f, -0.5f, 0.5f}, {0.5f, -0.5f, 0.5f}, {0.5f, 0.5f, 0.5f}, {-0.5f, 0.5f, 0.5f}, 
+    {-0.5f, -0.5f, -0.5f}, {0.5f, -0.5f, -0.5f}, {0.5f, 0.5f, -0.5f}, {-0.5f, 0.5f, -0.5f}
+};
+
+static uint32_t PREVIEW_CUBE_INDICES[36] = {
+    0, 2, 1, 0, 3, 2, 4, 3, 0, 4, 7, 3, 4, 1, 5, 4, 0, 1, 
+    3, 6, 2, 3, 7, 6, 1, 6, 5, 1, 2, 6, 7, 5, 6, 7, 4, 5
+};
+
 #endif // !ARM_COMMON_H

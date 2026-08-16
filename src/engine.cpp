@@ -63,6 +63,9 @@ void Engine::initialize(void) {
     this->camera.sens = 0.1f;
     this->camera.lock = 0;
 
+    // preview
+    this->renderer.init_preview_cube();
+
     // clock
     this->clock.lft = glfwGetTime();
 
@@ -114,8 +117,11 @@ void Engine::update(void) {
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        Mat4_t model(1.0f);
+
         // this->renderer.push_cmd(Vec4(1.0f, 1.0f, 1.0f, 1.0f));
         this->renderer.push_cmd({1.0f, 1.0f, 1.0f, 1.0f});
+        this->renderer.push_cmd(0, 0, model, Vec4{0.0f, 0.0f, 0.0f, 1.0f});
         this->renderer.draw((projection * view), this->camera.pos);
 
         glfwSwapBuffers(this->platform.window);

@@ -44,18 +44,29 @@ void Renderer::read_shaders(const char *path) { // temp solution
     //     std::cout << "file" << std::endl;
     // }
 
-    std::string paths[2] = {"res/shader/grid.vs", "res/shader/grid.fs"};
+    std::string grid_paths[2] = {"res/shader/grid.vs", "res/shader/grid.fs"};
+    std::string mesh_paths[2] = {"res/shader/mesh.vs", "res/shader/mesh.fs"};
 
-    this->shaders[DEBUG_RENDERER_SHADER_ID] = Shader();
-    this->shaders[DEBUG_RENDERER_SHADER_ID].initialize(paths);
+    this->shaders[DEBUG_RENDERER_GRID_SHADER_ID] = Shader();
+    this->shaders[DEBUG_RENDERER_GRID_SHADER_ID].initialize(grid_paths);
 
-    u32 program = this->shaders[DEBUG_RENDERER_SHADER_ID].get_program();
-    u32 camera_block_idx = glGetUniformBlockIndex(program, "u_Camera");
-    
-    // GL_INVALID_INDEX means it couldn't find the block (e.g., if it was compiled out or typo'd)
-    if (camera_block_idx != GL_INVALID_INDEX) {
-        glUniformBlockBinding(program, camera_block_idx, 1);
-    }
+    this->shaders[DEBUG_RENDERER_MESH_SHADER_ID] = Shader();
+    this->shaders[DEBUG_RENDERER_MESH_SHADER_ID].initialize(mesh_paths);
+
+    glUniformBlockBinding(
+        this->shaders[DEBUG_RENDERER_GRID_SHADER_ID].get_program(), 
+        glGetUniformBlockIndex(this->shaders[DEBUG_RENDERER_GRID_SHADER_ID].get_program(), "u_Camera"), 1
+    );
+
+    glUniformBlockBinding(
+        this->shaders[DEBUG_RENDERER_MESH_SHADER_ID].get_program(), 
+        glGetUniformBlockIndex(this->shaders[DEBUG_RENDERER_MESH_SHADER_ID].get_program(), "u_Camera"), 1
+    );
+
+    glUniformBlockBinding(
+        this->shaders[DEBUG_RENDERER_MESH_SHADER_ID].get_program(), 
+        glGetUniformBlockIndex(this->shaders[DEBUG_RENDERER_MESH_SHADER_ID].get_program(), "u_Instances"), 0
+    );
 }
 
 void Renderer::read_textures(const char *path) {}
@@ -155,7 +166,7 @@ void Renderer::draw(m4 view_proj, v3 cam_pos) {
         RendererCommand_t *command = &this->commands[i];
         switch (command->type) {
             case RendererCommandType::GRID: {
-                this->shaders[DEBUG_RENDERER_SHADER_ID].use();
+                this->shaders[DEBUG_RENDERER_GRID_SHADER_ID].use();
 
                 glBindVertexArray(this->gpu.grid.vao);
                 glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -166,12 +177,15 @@ void Renderer::draw(m4 view_proj, v3 cam_pos) {
             case RendererCommandType::MESH: {
                 if (chunkstances >= this->CHUNK_SIZE) {
                     glBindBuffer(GL_UNIFORM_BUFFER, this->gpu.mesh.ubo);
-                    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(GPUInstanceData_t) * chunkstances, chunk);
+                    glBufferSubData(GL_UNIFORM_BUFFER, 0, chunkstances * sizeof(GPUInstanceData_t), chunk);
                     chunkstances = 0;
                     chunks++;
                 }
 
                 chunk[chunkstances] = this->instances[command->index];
+
+                glBindBuffer(GL_UNIFORM_BUFFER, this->gpu.mesh.ubo);
+                glBufferSubData(GL_UNIFORM_BUFFER, chunkstances * sizeof(GPUInstanceData_t), sizeof(GPUInstanceData_t), &chunk[chunkstances]);
 
                 if (this->materials[command->material].id != shader) {
                     shader = this->materials[command->material].id;
@@ -199,6 +213,29 @@ void Renderer::draw(m4 view_proj, v3 cam_pos) {
 }
 
 void Renderer::terminate(void) {}
+
+// protected
+
+void Renderer::init_preview_cube(void) {
+    struct Mesh mesh = {0};
+    mesh.counter = 36;
+
+    glGenVertexArrays(1, &mesh.vao);
+    glGenBuffers(1, &mesh.vbo);
+    glGenBuffers(1, &mesh.ibo);
+
+    glBindVertexArray(mesh.vao);
+    glBindBuffer(GL_ARRAY_BUFFER, mesh.vbo);
+    glBufferData(GL_ARRAY_BUFFER, 8 * sizeof(v3), PREVIEW_CUBE_VERTICES, GL_DYNAMIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.ibo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 36 * sizeof(u32), PREVIEW_CUBE_INDICES, GL_DYNAMIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(v3), (void*) 0);
+    glEnableVertexAttribArray(0);
+
+    this->meshes[0] = mesh;
+}
 
 // private
 

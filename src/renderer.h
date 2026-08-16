@@ -7,7 +7,8 @@
 #include "math.h"
 #include "shader.h"
 
-#define DEBUG_RENDERER_SHADER_ID 0
+#define DEBUG_RENDERER_MESH_SHADER_ID 0
+#define DEBUG_RENDERER_GRID_SHADER_ID 1
 
 namespace Renderer {
 
@@ -162,6 +163,8 @@ public:
     // void draw(void);
     void draw(m4 view_proj, v3 cam_pos); // temp solution
     void terminate(void);
+// protected:
+    void init_preview_cube(void);
 private:
     static constexpr u32 MAX_SHADERS = 16;
     static constexpr u32 MAX_TEXTURES = 64;
