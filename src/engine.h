@@ -53,6 +53,11 @@ typedef struct {
     u8 lock;
 } Camera_t;
 
+enum class EngineMode : u8 {
+    SELECTION,
+    ROAM
+};
+
 class Engine {
 public:
     void initialize(void);
@@ -65,6 +70,8 @@ private:
     Renderer::Renderer renderer;
 
     Camera_t camera;
+
+    EngineMode mode;
     
     // Simulation simulation;
     // grid polygons init

@@ -29,7 +29,7 @@ void Engine::initialize(void) {
     glfwMakeContextCurrent(this->platform.window);
     glfwSetWindowUserPointer(this->platform.window, this);
     glfwSetKeyCallback(this->platform.window, callback_key);
-    glfwSetInputMode(this->platform.window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    // glfwSetInputMode(this->platform.window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSwapInterval(1);
 
     // glew
@@ -53,6 +53,8 @@ void Engine::initialize(void) {
     this->renderer.initialize();
     this->renderer.read_shaders("res");
 
+    this->renderer.init_preview_cube(); // preview
+
     // camera
     this->camera.pos = {0.0f, 4.0f, 8.0f};
     this->camera.tpos = {0.0f, -0.5f, -1.0f};
@@ -63,8 +65,8 @@ void Engine::initialize(void) {
     this->camera.sens = 0.1f;
     this->camera.lock = 0;
 
-    // preview
-    this->renderer.init_preview_cube();
+    // engine
+    this->mode = EngineMode::SELECTION;
 
     // clock
     this->clock.lft = glfwGetTime();
@@ -120,8 +122,8 @@ void Engine::update(void) {
         Mat4_t model(1.0f);
 
         // this->renderer.push_cmd(Vec4(1.0f, 1.0f, 1.0f, 1.0f));
-        this->renderer.push_cmd({1.0f, 1.0f, 1.0f, 1.0f});
-        this->renderer.push_cmd(0, 0, model, Vec4{0.0f, 0.0f, 0.0f, 1.0f});
+        this->renderer.push_cmd({1.0f, 1.0f, 1.0f, 1.0f}); // grid
+        this->renderer.push_cmd(0, 0, model, Vec4{0.0f, 0.0f, 0.0f, 1.0f}); // cube
         this->renderer.draw((projection * view), this->camera.pos);
 
         glfwSwapBuffers(this->platform.window);
@@ -148,6 +150,18 @@ void Engine::register_key(i32 key, i32 action) {
 
 void Engine::handle_keyboard(void) {
     if (glfwGetMouseButton(this->platform.window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) {
+        if (this->mode != EngineMode::ROAM) { // do it with events or smth (works for now)
+            this->mode = EngineMode::ROAM;
+            glfwSetInputMode(this->platform.window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+            glfwSetCursorPos(this->platform.window, this->camera.mx, this->camera.my);
+        }
+    } else if (glfwGetMouseButton(this->platform.window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_RELEASE) {
+        if (this->mode != EngineMode::SELECTION) {
+            this->mode = EngineMode::SELECTION;
+            glfwSetInputMode(this->platform.window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+        }
+    }
+    if (this->mode == EngineMode::ROAM) {
         if (this->platform.keys[GLFW_KEY_W] == GLFW_PRESS) {
             this->camera.pos = (this->camera.pos + (this->camera.tpos * this->camera.speed * this->clock.dt));
         }
@@ -166,29 +180,31 @@ void Engine::handle_keyboard(void) {
     }
 }
 
-void Engine::handle_mouse(void) {
+void Engine::handle_mouse(void) { // handle more things than only camera hrere lol
     double mx, my;
     glfwGetCursorPos(this->platform.window, &mx, &my);
 
-    float offsetx = ((mx - this->camera.mx) * this->camera.sens);
-    float offsety = ((this->camera.my - my) * this->camera.sens);
+    if (this->mode == EngineMode::ROAM) {
+        float offsetx = ((mx - this->camera.mx) * this->camera.sens);
+        float offsety = ((this->camera.my - my) * this->camera.sens);
 
-    this->camera.mx = mx;
-    this->camera.my = my;
+        this->camera.mx = mx;
+        this->camera.my = my;
 
-    this->camera.yaw = (this->camera.yaw + offsetx);
-    this->camera.pitch = (this->camera.pitch + offsety);
+        this->camera.yaw = (this->camera.yaw + offsetx);
+        this->camera.pitch = (this->camera.pitch + offsety);
 
-    if (this->camera.pitch > 89.0f) this->camera.pitch = 89.0f;
-    if (this->camera.pitch < -89.0f) this->camera.pitch = -89.0f;
+        if (this->camera.pitch > 89.0f) this->camera.pitch = 89.0f;
+        if (this->camera.pitch < -89.0f) this->camera.pitch = -89.0f;
 
-    v3 target = {
-        (cos(radians(this->camera.yaw)) * cos(radians(this->camera.pitch))),
-        sin(radians(this->camera.pitch)),
-        (sin(radians(this->camera.yaw)) * cos(radians(this->camera.pitch)))
-    };
+        v3 target = {
+            (cos(radians(this->camera.yaw)) * cos(radians(this->camera.pitch))),
+            sin(radians(this->camera.pitch)),
+            (sin(radians(this->camera.yaw)) * cos(radians(this->camera.pitch)))
+        };
 
-    this->camera.tpos = normalize(target);
+        this->camera.tpos = normalize(target);
+    }
 }
 
 // other
