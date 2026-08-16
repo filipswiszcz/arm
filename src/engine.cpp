@@ -54,9 +54,9 @@ void Engine::initialize(void) {
     this->renderer.read_shaders("res");
 
     // camera
-    this->camera.pos = Vec3(0.0f, 4.0f, 8.0f);
-    this->camera.tpos = Vec3(0.0f, -0.5f, -1.0f);
-    this->camera.hpos = Vec3(0.0f, 1.0f, 0.0f);
+    this->camera.pos = {0.0f, 4.0f, 8.0f};
+    this->camera.tpos = {0.0f, -0.5f, -1.0f};
+    this->camera.hpos = {0.0f, 1.0f, 0.0f};
     this->camera.yaw = -90.0f;
     this->camera.pitch = 0.0f;
     this->camera.speed = 4.0f;
@@ -114,7 +114,8 @@ void Engine::update(void) {
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        this->renderer.push_cmd(Vec4(1.0f, 1.0f, 1.0f, 1.0f));
+        // this->renderer.push_cmd(Vec4(1.0f, 1.0f, 1.0f, 1.0f));
+        this->renderer.push_cmd({1.0f, 1.0f, 1.0f, 1.0f});
         this->renderer.draw((projection * view), this->camera.pos);
 
         glfwSwapBuffers(this->platform.window);
@@ -146,6 +147,12 @@ void Engine::handle_keyboard(void) {
         }
         if (this->platform.keys[GLFW_KEY_S] == GLFW_PRESS) {
             this->camera.pos = (this->camera.pos - (this->camera.tpos * this->camera.speed * this->clock.dt));
+        }
+        if (this->platform.keys[GLFW_KEY_A] == GLFW_PRESS) {
+            this->camera.pos = (this->camera.pos - (normalize(cross(this->camera.tpos, this->camera.hpos)) * (this->camera.speed * this->clock.dt)));
+        }
+        if (this->platform.keys[GLFW_KEY_D] == GLFW_PRESS) {
+            this->camera.pos = (this->camera.pos + (normalize(cross(this->camera.tpos, this->camera.hpos)) * (this->camera.speed * this->clock.dt)));
         }
     }
     if (this->platform.keys[GLFW_KEY_ESCAPE] == GLFW_PRESS) {

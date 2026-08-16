@@ -74,12 +74,20 @@ void Renderer::push_cmd(meID mesh, maID material, m4 transform, v4 tint) {
     key |= ((u64) material << 32);
     key |= ((u64) mesh << 16);
 
+    // RendererCommand_t command = {
+    //     .key = key,
+    //     .type = RendererCommandType::MESH,
+    //     .mesh = mesh,
+    //     .material = material,
+    //     .index = this->inst_counter
+    // };
+
     RendererCommand_t command = {
-        .key = key,
-        .type = RendererCommandType::MESH,
-        .mesh = mesh,
-        .material = material,
-        .index = this->inst_counter
+        key,
+        RendererCommandType::MESH,
+        mesh,
+        material,
+        this->inst_counter
     };
 
     this->commands[this->cmd_counter++] = command;
@@ -93,10 +101,16 @@ void Renderer::push_cmd(v3 start, v3 end, v4 color, f32 thickness) {
     u64 key = 0;
     key |= ((u64) RendererPass::DEBUG << 62);
 
+    // RendererCommand_t command = {
+    //     .key = key,
+    //     .type = RendererCommandType::LINE,
+    //     .index = this->line_counter
+    // };
+
     RendererCommand_t command = {
-        .key = key,
-        .type = RendererCommandType::LINE,
-        .index = this->line_counter
+        key,
+        RendererCommandType::LINE,
+        this->line_counter
     };
 
     this->commands[this->cmd_counter++] = command;
@@ -109,9 +123,14 @@ void Renderer::push_cmd(v4 color) {
     u64 key = 0;
     key |= ((u64) RendererPass::DEPTH_PREPASS << 62);
 
+    // RendererCommand_t command = {
+    //     .key = key,
+    //     .type = RendererCommandType::GRID
+    // };
+
     RendererCommand_t command = {
-        .key = key,
-        .type = RendererCommandType::GRID
+        key,
+        RendererCommandType::GRID
     };
 
     this->commands[this->cmd_counter++] = command;
@@ -124,7 +143,8 @@ void Renderer::draw(m4 view_proj, v3 cam_pos) {
     GPUInstanceData_t chunk[this->CHUNK_SIZE];
     u32 chunks = 0, chunkstances = 0;
 
-    GPUCameraData_t camera = {.view_proj = view_proj, .pos = cam_pos, .padd = 0.0f};
+    // GPUCameraData_t camera = {.view_proj = view_proj, .pos = cam_pos, .padd = 0.0f};
+    GPUCameraData_t camera = {view_proj, cam_pos, 0.0f};
     glBindBuffer(GL_UNIFORM_BUFFER, this->gpu.camera.ubo);
     glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(GPUCameraData_t), &camera);
 
