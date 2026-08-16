@@ -123,7 +123,14 @@ void Engine::update(void) {
 
         // this->renderer.push_cmd(Vec4(1.0f, 1.0f, 1.0f, 1.0f));
         this->renderer.push_cmd({1.0f, 1.0f, 1.0f, 1.0f}); // grid
-        this->renderer.push_cmd(0, 0, model, Vec4{0.0f, 0.0f, 0.0f, 1.0f}); // cube
+        this->renderer.push_cmd(0, 0, model, {0.0f, 0.0f, 0.0f, 1.0f}); // cube
+        this->renderer.push_cmd({-1.0f, 1.0f, 0.0f}, {1.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 0.0f, 1.0f}, 2.0f);
+
+        model = translate(model, {-2.5f, 0.0f, -2.5f});
+        this->renderer.push_cmd(0, 0, model, {0.0f, 0.0f, 0.0f, 1.0f});
+        model = translate(model, {5.0f, 0.0f, 0.0f});
+        this->renderer.push_cmd(0, 0, model, {0.0f, 0.0f, 0.0f, 1.0f});
+        
         this->renderer.draw((projection * view), this->camera.pos);
 
         glfwSwapBuffers(this->platform.window);

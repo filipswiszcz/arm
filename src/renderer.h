@@ -9,6 +9,7 @@
 
 #define DEBUG_RENDERER_MESH_SHADER_ID 0
 #define DEBUG_RENDERER_GRID_SHADER_ID 1
+#define DEBUG_RENDERER_LINE_SHADER_ID 2
 
 namespace Renderer {
 
@@ -57,7 +58,7 @@ typedef struct {
 typedef struct {
     m4 view_proj;
     v3 pos; // with padding (std140)
-    f32 padd;
+    f32 padd; // can i just use v4?
 } GPUCameraData_t;
 
 typedef struct {
@@ -97,7 +98,8 @@ enum class RendererCommandType : u8 {
     GRID = 0,
     MESH,
     TEXT,
-    LINE
+    LINE,
+    DOT
 };
 
 typedef struct {
@@ -158,6 +160,7 @@ public:
     void push_cmd(meID mesh, maID material, m4 transform, v4 tint);
     // void push_cmd(const char *mesh, ..) look up table [str => meID?]?
     void push_cmd(v3 start, v3 end, v4 color, f32 thickness);
+    // void push_cmd(v3 pos, v4 color, f32 thickness);
     void push_cmd(const char *text, v2 pos, f32 scale, v4 color);
     void push_cmd(v4 color); // ? (grid)
     // void draw(void);

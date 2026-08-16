@@ -10,7 +10,7 @@ void Renderer::initialize(void) {
     // mesh
     glGenBuffers(1, &this->gpu.mesh.ubo);
     glBindBuffer(GL_UNIFORM_BUFFER, this->gpu.mesh.ubo);
-    glBufferData(GL_UNIFORM_BUFFER, sizeof(GPUInstanceData_t) * this->CHUNK_SIZE, nullptr, GL_DYNAMIC_DRAW);
+    glBufferData(GL_UNIFORM_BUFFER, this->CHUNK_SIZE * sizeof(GPUInstanceData_t), nullptr, GL_DYNAMIC_DRAW);
     glBindBufferBase(GL_UNIFORM_BUFFER, 0, this->gpu.mesh.ubo);
 
     // camera
@@ -25,16 +25,20 @@ void Renderer::initialize(void) {
     glGenBuffers(1, &this->gpu.line.vbo);
     glBindVertexArray(this->gpu.line.vao);
     glBindBuffer(GL_ARRAY_BUFFER, this->gpu.line.vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(GPULineData_t) * this->MAX_LINES, nullptr, GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, this->MAX_LINES * sizeof(GPULineData_t), nullptr, GL_DYNAMIC_DRAW);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(GPULineData_t), (void*) 0);
     glEnableVertexAttribArray(0);
+    glVertexAttribDivisor(0, 1);
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(GPULineData_t), (void*) (sizeof(v3)));
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(GPULineData_t), (void*) (sizeof(v3) * 2));
+    glVertexAttribDivisor(1, 1);
+    glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(GPULineData_t), (void*) (2 * sizeof(v3)));
     glEnableVertexAttribArray(2);
-    glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, sizeof(GPULineData_t), (void*) ((sizeof(v3) * 2) + sizeof(v4)));
+    glVertexAttribDivisor(2, 1);
+    glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, sizeof(GPULineData_t), (void*) ((2 * sizeof(v3)) + sizeof(v4)));
     glEnableVertexAttribArray(3);
+    glVertexAttribDivisor(3, 1);
 }
 
 void Renderer::read_shaders(const char *path) { // temp solution
@@ -46,12 +50,16 @@ void Renderer::read_shaders(const char *path) { // temp solution
 
     std::string grid_paths[2] = {"res/shader/grid.vs", "res/shader/grid.fs"};
     std::string mesh_paths[2] = {"res/shader/mesh.vs", "res/shader/mesh.fs"};
+    std::string line_paths[2] = {"res/shader/line.vs", "res/shader/line.fs"};
 
     this->shaders[DEBUG_RENDERER_GRID_SHADER_ID] = Shader();
     this->shaders[DEBUG_RENDERER_GRID_SHADER_ID].initialize(grid_paths);
 
     this->shaders[DEBUG_RENDERER_MESH_SHADER_ID] = Shader();
     this->shaders[DEBUG_RENDERER_MESH_SHADER_ID].initialize(mesh_paths);
+
+    this->shaders[DEBUG_RENDERER_LINE_SHADER_ID] = Shader();
+    this->shaders[DEBUG_RENDERER_LINE_SHADER_ID].initialize(line_paths);
 
     glUniformBlockBinding(
         this->shaders[DEBUG_RENDERER_GRID_SHADER_ID].get_program(), 
@@ -67,6 +75,11 @@ void Renderer::read_shaders(const char *path) { // temp solution
         this->shaders[DEBUG_RENDERER_MESH_SHADER_ID].get_program(), 
         glGetUniformBlockIndex(this->shaders[DEBUG_RENDERER_MESH_SHADER_ID].get_program(), "u_Instances"), 0
     );
+
+    glUniformBlockBinding(
+        this->shaders[DEBUG_RENDERER_LINE_SHADER_ID].get_program(), 
+        glGetUniformBlockIndex(this->shaders[DEBUG_RENDERER_LINE_SHADER_ID].get_program(), "u_Camera"), 1
+    );
 }
 
 void Renderer::read_textures(const char *path) {}
@@ -80,10 +93,10 @@ void Renderer::push_cmd(meID mesh, maID material, m4 transform, v4 tint) {
     this->instances[this->inst_counter] = {transform, tint};
 
     u64 key = 0;
-    key |= ((u64) RendererPass::OPAQUE << 62);
-    key |= ((u64) this->materials[material].id << 48);
-    key |= ((u64) material << 32);
-    key |= ((u64) mesh << 16);
+    key |= ((u64) RendererPass::OPAQUE << 60);
+    key |= ((u64) this->materials[material].id << 44);
+    key |= ((u64) material << 28);
+    key |= ((u64) mesh << 12);
 
     // RendererCommand_t command = {
     //     .key = key,
@@ -110,7 +123,7 @@ void Renderer::push_cmd(v3 start, v3 end, v4 color, f32 thickness) {
     this->lines[this->line_counter] = {start, end, color, thickness};
 
     u64 key = 0;
-    key |= ((u64) RendererPass::DEBUG << 62);
+    key |= ((u64) RendererPass::DEBUG << 60);
 
     // RendererCommand_t command = {
     //     .key = key,
@@ -132,7 +145,7 @@ void Renderer::push_cmd(const char *text, v2 pos, f32 scale, v4 color) {}
 
 void Renderer::push_cmd(v4 color) {
     u64 key = 0;
-    key |= ((u64) RendererPass::DEPTH_PREPASS << 62);
+    key |= ((u64) RendererPass::DEPTH_PREPASS << 60);
 
     // RendererCommand_t command = {
     //     .key = key,
@@ -159,6 +172,11 @@ void Renderer::draw(m4 view_proj, v3 cam_pos) {
     glBindBuffer(GL_UNIFORM_BUFFER, this->gpu.camera.ubo);
     glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(GPUCameraData_t), &camera);
 
+    std::sort(this->commands, this->commands + this->cmd_counter, 
+        [](const RendererCommand_t &a, const RendererCommand_t &b) {
+            return a.key < b.key;
+    });
+
     shID shader = 0xFFFF;
     maID material = 0xFFFF;
 
@@ -170,6 +188,8 @@ void Renderer::draw(m4 view_proj, v3 cam_pos) {
 
                 glBindVertexArray(this->gpu.grid.vao);
                 glDrawArrays(GL_TRIANGLES, 0, 6);
+
+                // std::cout << "GRID" << std::endl;
 
                 shader = 0xFFFF;
                 break;
@@ -197,12 +217,29 @@ void Renderer::draw(m4 view_proj, v3 cam_pos) {
                 glBindVertexArray(this->meshes[command->mesh].vao);
                 glDrawElements(GL_TRIANGLES, this->meshes[command->mesh].counter, GL_UNSIGNED_INT, 0);
 
+                // std::cout << "MESH" << std::endl;
+
                 chunkstances++;
                 break;
             }
             case RendererCommandType::LINE: {
-                // GPULineData_t *line = &this->lines[this->cmd_counter];
-                break;
+                if ((this->cmd_counter - 1) == i || this->commands[i + 1].type != RendererCommandType::LINE) {
+                    this->shaders[DEBUG_RENDERER_LINE_SHADER_ID].use();
+
+                    glBindVertexArray(this->gpu.line.vao);
+                    glBindBuffer(GL_ARRAY_BUFFER, this->gpu.line.vbo);
+                    glBufferSubData(GL_ARRAY_BUFFER, 0, this->line_counter * sizeof(GPULineData_t), this->lines);
+
+                    glLineWidth(this->lines[this->cmd_counter].thickness); // does it even work somewhere?
+
+                    glDrawArraysInstanced(GL_LINES, 0, 2, this->line_counter);
+
+                    // std::cout << "LINE" << std::endl;
+
+                    glLineWidth(1.0f);
+                    shader = 0xFFFF;
+                    break;
+                }
             }
         }
     }
