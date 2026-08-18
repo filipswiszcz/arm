@@ -30,7 +30,6 @@ typedef struct {
     u32 width, height;
     std::string name; // dont use string u mf
     i32 keys[512]; // weirdo
-
 } Platform_t;
 
 typedef struct {
@@ -53,6 +52,18 @@ typedef struct {
     u8 lock;
 } Camera_t;
 
+enum class GizmoType : u8 {
+    TRANSLATE,
+    ROTATE,
+    SCALE
+};
+
+typedef struct {
+    v3 pos;
+    GizmoType type;
+    u8 visible;
+} Gizmo_t;
+
 enum class EngineMode : u8 {
     SELECTION,
     ROAM
@@ -69,7 +80,11 @@ private:
     
     Renderer::Renderer renderer;
 
+    Mat4_t projection; // ultra temp
+    Mat4_t view; // ultra temp
+
     Camera_t camera;
+    Gizmo_t gizmo;
 
     EngineMode mode;
     

@@ -56,7 +56,7 @@ void Engine::initialize(void) {
     this->renderer.init_preview_cube(); // preview
 
     // camera
-    this->camera.pos = {0.0f, 4.0f, 8.0f};
+    this->camera.pos = {0.0f, 4.0f, 4.0f};
     this->camera.tpos = {0.0f, -0.5f, -1.0f};
     this->camera.hpos = {0.0f, 1.0f, 0.0f};
     this->camera.yaw = -90.0f;
@@ -64,6 +64,11 @@ void Engine::initialize(void) {
     this->camera.speed = 4.0f;
     this->camera.sens = 0.1f;
     this->camera.lock = 0;
+
+    // gizmo
+    this->gizmo.pos = {0.0f, 2.0f, 0.0f};
+    this->gizmo.type = GizmoType::TRANSLATE;
+    this->gizmo.visible = 1;
 
     // engine
     this->mode = EngineMode::SELECTION;
@@ -114,27 +119,27 @@ void Engine::update(void) {
         }
 
         // renderer
-        Mat4_t projection = perspective(radians(90.0f), ((float) this->platform.width / (float) this->platform.height), 0.01f, 100.0f);
-        Mat4_t view = look_at(this->camera.pos, (this->camera.pos + this->camera.tpos), this->camera.hpos);
+        this->projection = perspective(radians(90.0f), ((float) this->platform.width / (float) this->platform.height), 0.01f, 100.0f);
+        this->view = look_at(this->camera.pos, (this->camera.pos + this->camera.tpos), this->camera.hpos);
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        Mat4_t model(1.0f);
-
-        // this->renderer.push_cmd(Vec4(1.0f, 1.0f, 1.0f, 1.0f));
         this->renderer.push_cmd({1.0f, 1.0f, 1.0f, 1.0f}); // grid
+
+        // gizmo
+        if (this->gizmo.visible) {
+            this->renderer.push_cmd(this->gizmo.pos, this->gizmo.pos + Vec3{0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 1.0f, 1.0f}, 2.0f);
+            this->renderer.push_cmd(this->gizmo.pos, this->gizmo.pos + Vec3{1.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f, 1.0f}, 2.0f);
+            this->renderer.push_cmd(this->gizmo.pos, this->gizmo.pos + Vec3{0.0f, 0.0f, 1.0f}, {0.0f, 1.0f, 0.0f, 1.0f}, 2.0f);
+        }
+
+        Mat4_t model(1.0f);
+        model = translate(model, {0.0f, 2.0f, 0.0f});
         this->renderer.push_cmd(0, 0, model, {0.0f, 0.0f, 0.0f, 1.0f}); // cube
-        this->renderer.push_cmd({-1.0f, 1.0f, 0.0f}, {1.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 0.0f, 1.0f}, 2.0f);
-
-        model = translate(model, {-2.5f, 0.0f, -2.5f});
-        this->renderer.push_cmd(0, 0, model, {0.0f, 0.0f, 0.0f, 1.0f});
-        model = translate(model, {5.0f, 0.0f, 0.0f});
-        this->renderer.push_cmd(0, 0, model, {0.0f, 0.0f, 0.0f, 1.0f});
-
-        this->renderer.push_cmd({0.0f, 2.0f, 0.0f}, {0.0f, 0.0f, 0.0f, 1.0f}, 2.0f); // point
-        this->renderer.push_cmd({0.0f, 4.0f, 0.0f}, {0.0f, 0.0f, 0.0f, 1.0f}, 8.0f);
         
-        this->renderer.draw((projection * view), this->camera.pos);
+        glDepthMask(GL_FALSE); // temp sol
+        this->renderer.draw((this->projection * this->view), this->camera.pos);
+        glDepthMask(GL_TRUE);
 
         glfwSwapBuffers(this->platform.window);
         glfwPollEvents();
@@ -191,12 +196,31 @@ void Engine::handle_keyboard(void) {
 }
 
 void Engine::handle_mouse(void) { // handle more things than only camera hrere lol
-    double mx, my;
+    f64 mx, my;
     glfwGetCursorPos(this->platform.window, &mx, &my);
 
+    if (this->mode == EngineMode::SELECTION) {
+        f32 x = (2.0f * mx) / this->platform.width - 1.0f;
+        f32 y = 1.0f - (2.0f * my) / this->platform.height;
+        f32 z = 1.0f;
+
+        // std::cout << "x=" << x << ", y=" << y << std::endl;
+
+        v4 clip = {x, y, -1.0f, 1.0f};
+        v4 eye = inverse(this->projection) * clip;
+        eye.z = -1.0f;
+        eye.w = 0.0f;
+
+        v4 worldc = (inverse(this->view) * eye);
+        v3 world = {worldc.x, worldc.y, worldc.z};
+        world = normalize(world);
+
+        // std::cout << "x=" << world.x << ", y=" << world.y << ", z=" << world.z << std::endl;
+    }
+
     if (this->mode == EngineMode::ROAM) {
-        float offsetx = ((mx - this->camera.mx) * this->camera.sens);
-        float offsety = ((this->camera.my - my) * this->camera.sens);
+        f32 offsetx = ((mx - this->camera.mx) * this->camera.sens);
+        f32 offsety = ((this->camera.my - my) * this->camera.sens);
 
         this->camera.mx = mx;
         this->camera.my = my;
@@ -219,7 +243,7 @@ void Engine::handle_mouse(void) { // handle more things than only camera hrere l
 
 // other
 
-int main(void) {
+i32 main(void) {
     Engine engine;
     engine.initialize();
     engine.update();
