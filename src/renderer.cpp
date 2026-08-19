@@ -236,7 +236,10 @@ void Renderer::draw(m4 view_proj, v3 cam_pos) {
                 this->shaders[DEBUG_RENDERER_GRID_SHADER_ID].use();
 
                 glBindVertexArray(this->gpu.grid.vao);
+
+                glDepthMask(GL_FALSE); // temp?
                 glDrawArrays(GL_TRIANGLES, 0, 6);
+                glDepthMask(GL_TRUE);
 
                 // std::cout << "GRID" << std::endl;
 
@@ -281,7 +284,11 @@ void Renderer::draw(m4 view_proj, v3 cam_pos) {
 
                     glLineWidth(this->lines[command->index].thickness); // does it even work somewhere?
 
+                    glDisable(GL_DEPTH_TEST); // temp?
+                    glDepthMask(GL_FALSE);
                     glDrawArraysInstanced(GL_LINES, 0, 2, this->line_counter);
+                    glEnable(GL_DEPTH_TEST);
+                    glDepthMask(GL_TRUE);
 
                     // std::cout << "LINE" << std::endl;
 
@@ -289,6 +296,7 @@ void Renderer::draw(m4 view_proj, v3 cam_pos) {
                     shader = 0xFFFF;
                     break;
                 }
+                break;
             }
             case RendererCommandType::DOT: {
                 if ((this->cmd_counter - 1) == i || this->commands[i + 1].type != RendererCommandType::DOT) {

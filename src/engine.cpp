@@ -126,8 +126,7 @@ void Engine::update(void) {
 
         this->renderer.push_cmd({1.0f, 1.0f, 1.0f, 1.0f}); // grid
 
-        // gizmo
-        if (this->gizmo.visible) {
+        if (this->gizmo.visible) { // gizmo
             this->renderer.push_cmd(this->gizmo.pos, this->gizmo.pos + Vec3{0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 1.0f, 1.0f}, 2.0f);
             this->renderer.push_cmd(this->gizmo.pos, this->gizmo.pos + Vec3{1.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f, 1.0f}, 2.0f);
             this->renderer.push_cmd(this->gizmo.pos, this->gizmo.pos + Vec3{0.0f, 0.0f, 1.0f}, {0.0f, 1.0f, 0.0f, 1.0f}, 2.0f);
@@ -136,10 +135,8 @@ void Engine::update(void) {
         Mat4_t model(1.0f);
         model = translate(model, {0.0f, 2.0f, 0.0f});
         this->renderer.push_cmd(0, 0, model, {0.0f, 0.0f, 0.0f, 1.0f}); // cube
-        
-        glDepthMask(GL_FALSE); // temp sol
+
         this->renderer.draw((this->projection * this->view), this->camera.pos);
-        glDepthMask(GL_TRUE);
 
         glfwSwapBuffers(this->platform.window);
         glfwPollEvents();
