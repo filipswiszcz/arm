@@ -54,6 +54,8 @@ void Engine::initialize(void) {
     this->renderer.read_shaders("res");
 
     this->renderer.init_preview_cube(); // preview
+    this->collider.pos = {0.0f, 2.0f, 0.0f}; // preview
+    this->collider.radius = 1.0f; // preview
 
     // camera
     this->camera.pos = {0.0f, 4.0f, 4.0f};
@@ -199,31 +201,29 @@ void Engine::handle_mouse(void) { // handle more things than only camera hrere l
     if (this->mode == EngineMode::SELECTION) {
         f32 x = (2.0f * mx) / this->platform.width - 1.0f;
         f32 y = 1.0f - (2.0f * my) / this->platform.height;
-        f32 z = 1.0f;
 
-        // std::cout << "x=" << x << ", y=" << y << std::endl;
+        v4 clip_pos = {x, y, -1.0f, 1.0f};
+        v4 ray_view = inverse(this->projection) * clip_pos;
+        ray_view.z = -1.0f;
+        ray_view.w = 0.0f;
 
-        v4 clip = {x, y, -1.0f, 1.0f};
-        v4 eye = inverse(this->projection) * clip;
-        eye.z = -1.0f;
-        eye.w = 0.0f;
+        v4 ray = (inverse(this->view) * ray_view);
+        v3 direction = normalize({ray.x, ray.y, ray.z});
 
-        v4 worldc = (inverse(this->view) * eye);
-        v3 world = {worldc.x, worldc.y, worldc.z};
-        world = normalize(world);
-
-        // std::cout << "x=" << world.x << ", y=" << world.y << ", z=" << world.z << std::endl;
+        if (check_sphere_intersection(this->camera.pos, direction, this->collider.pos, this->collider.radius)) {
+            // std::cout << "hit" << std::endl;
+        } else {}
     }
 
     if (this->mode == EngineMode::ROAM) {
-        f32 offsetx = ((mx - this->camera.mx) * this->camera.sens);
-        f32 offsety = ((this->camera.my - my) * this->camera.sens);
+        f32 offset_x = ((mx - this->camera.mx) * this->camera.sens);
+        f32 offset_y = ((this->camera.my - my) * this->camera.sens);
 
         this->camera.mx = mx;
         this->camera.my = my;
 
-        this->camera.yaw = (this->camera.yaw + offsetx);
-        this->camera.pitch = (this->camera.pitch + offsety);
+        this->camera.yaw = (this->camera.yaw + offset_x);
+        this->camera.pitch = (this->camera.pitch + offset_y);
 
         if (this->camera.pitch > 89.0f) this->camera.pitch = 89.0f;
         if (this->camera.pitch < -89.0f) this->camera.pitch = -89.0f;
