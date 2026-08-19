@@ -38,7 +38,7 @@ ShaderStatus Shader::use(void) {
     return ShaderStatus::SUCCESS;
 }
 
-ShaderStatus Shader::set_uint(std::string name, u32 val) {
+ShaderStatus Shader::set(std::string name, u32 val) {
     if (!ENGINE_ASSERT(name.c_str() != NULL)) {
         return ShaderStatus::INVALID_PARAMETER;
     }
@@ -46,7 +46,7 @@ ShaderStatus Shader::set_uint(std::string name, u32 val) {
     return ShaderStatus::SUCCESS;
 }
 
-ShaderStatus Shader::set_float(std::string name, f32 val) {
+ShaderStatus Shader::set(std::string name, f32 val) {
     if (!ENGINE_ASSERT(name.c_str() != NULL)) {
         return ShaderStatus::INVALID_PARAMETER;
     }
@@ -54,12 +54,20 @@ ShaderStatus Shader::set_float(std::string name, f32 val) {
     return ShaderStatus::SUCCESS;
 }
 
-void Shader::set_vec3(std::string name, Vec3_t vec) {
+ShaderStatus Shader::set(std::string name, v3 vec) {
+    if (!ENGINE_ASSERT(name.c_str() != NULL)) {
+        return ShaderStatus::INVALID_PARAMETER;
+    }
     glUniform3f(glGetUniformLocation(this->program, name.c_str()), vec.x, vec.y, vec.z);
+    return ShaderStatus::SUCCESS;
 }
 
-void Shader::set_mat4(std::string name, Mat4_t mat) {
+ShaderStatus Shader::set(std::string name, m4 mat) {
+    if (!ENGINE_ASSERT(name.c_str() != NULL)) {
+        return ShaderStatus::INVALID_PARAMETER;
+    }
     glUniformMatrix4fv(glGetUniformLocation(this->program, name.c_str()), 1, 0, &mat.m[0][0]);
+    return ShaderStatus::SUCCESS;
 }
 
 // private

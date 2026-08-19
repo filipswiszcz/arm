@@ -33,13 +33,13 @@ public:
         ids[0] = 0;
         ids[1] = 0;
     }
-    ShaderStatus initialize(std::string paths[2]);
+    ShaderStatus initialize(std::string paths[2]); // dont use string you silly goose
     ShaderStatus use(void);
-    i32 get_program() const {return program;}
-    ShaderStatus set_uint(std::string name, u32 val);
-    ShaderStatus set_float(std::string name, f32 val);
-    void set_vec3(std::string name, v3 vec);
-    void set_mat4(std::string name, m4 mat);
+    i32 get() const {return program;} // add asserts
+    ShaderStatus set(std::string name, u32 val);
+    ShaderStatus set(std::string name, f32 val);
+    ShaderStatus set(std::string name, v3 vec);
+    ShaderStatus set(std::string name, m4 mat);
 private:
     i32 ids[2]; // [0] = vert, [1] = frag
     i32 program;

@@ -85,28 +85,28 @@ void Renderer::read_shaders(const char *path) { // temp solution
     this->shaders[DEBUG_RENDERER_DOT_SHADER_ID].initialize(dot_paths);
 
     glUniformBlockBinding(
-        this->shaders[DEBUG_RENDERER_GRID_SHADER_ID].get_program(), 
-        glGetUniformBlockIndex(this->shaders[DEBUG_RENDERER_GRID_SHADER_ID].get_program(), "u_Camera"), 1
+        this->shaders[DEBUG_RENDERER_GRID_SHADER_ID].get(), 
+        glGetUniformBlockIndex(this->shaders[DEBUG_RENDERER_GRID_SHADER_ID].get(), "u_Camera"), 1
     );
 
     glUniformBlockBinding(
-        this->shaders[DEBUG_RENDERER_MESH_SHADER_ID].get_program(), 
-        glGetUniformBlockIndex(this->shaders[DEBUG_RENDERER_MESH_SHADER_ID].get_program(), "u_Camera"), 1
+        this->shaders[DEBUG_RENDERER_MESH_SHADER_ID].get(), 
+        glGetUniformBlockIndex(this->shaders[DEBUG_RENDERER_MESH_SHADER_ID].get(), "u_Camera"), 1
     );
 
     glUniformBlockBinding(
-        this->shaders[DEBUG_RENDERER_MESH_SHADER_ID].get_program(), 
-        glGetUniformBlockIndex(this->shaders[DEBUG_RENDERER_MESH_SHADER_ID].get_program(), "u_Instances"), 0
+        this->shaders[DEBUG_RENDERER_MESH_SHADER_ID].get(), 
+        glGetUniformBlockIndex(this->shaders[DEBUG_RENDERER_MESH_SHADER_ID].get(), "u_Instances"), 0
     );
 
     glUniformBlockBinding(
-        this->shaders[DEBUG_RENDERER_LINE_SHADER_ID].get_program(), 
-        glGetUniformBlockIndex(this->shaders[DEBUG_RENDERER_LINE_SHADER_ID].get_program(), "u_Camera"), 1
+        this->shaders[DEBUG_RENDERER_LINE_SHADER_ID].get(), 
+        glGetUniformBlockIndex(this->shaders[DEBUG_RENDERER_LINE_SHADER_ID].get(), "u_Camera"), 1
     );
 
     glUniformBlockBinding(
-        this->shaders[DEBUG_RENDERER_DOT_SHADER_ID].get_program(), 
-        glGetUniformBlockIndex(this->shaders[DEBUG_RENDERER_DOT_SHADER_ID].get_program(), "u_Camera"), 1
+        this->shaders[DEBUG_RENDERER_DOT_SHADER_ID].get(), 
+        glGetUniformBlockIndex(this->shaders[DEBUG_RENDERER_DOT_SHADER_ID].get(), "u_Camera"), 1
     );
 }
 
@@ -261,7 +261,7 @@ void Renderer::draw(m4 view_proj, v3 cam_pos) {
                     this->shaders[shader].use();
                 }
 
-                this->shaders[shader].set_uint("u_Index", chunkstances);
+                this->shaders[shader].set("u_Index", chunkstances);
 
                 glBindVertexArray(this->meshes[command->mesh].vao);
                 glDrawElements(GL_TRIANGLES, this->meshes[command->mesh].counter, GL_UNSIGNED_INT, 0);
