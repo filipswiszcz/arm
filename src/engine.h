@@ -12,6 +12,7 @@
 
 #include "common.h"
 #include "math.h" // temp
+#include "physics.h" // temp
 #include "renderer.h"
 // #include "shader.h"
 #include "simulation.h"
@@ -59,8 +60,10 @@ enum class GizmoType : u8 {
 };
 
 typedef struct {
-    v3 pos;
     GizmoType type;
+    v3 pos;
+    f64 mx, my;
+    v4 color; // ultra temp
     u8 visible;
 } Gizmo_t;
 
@@ -82,6 +85,7 @@ private:
 
     Mat4_t projection; // ultra temp
     Mat4_t view; // ultra temp
+    aabb_collider_t collider; // ultra temp
 
     Camera_t camera;
     Gizmo_t gizmo;

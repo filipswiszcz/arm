@@ -49,13 +49,14 @@ void Engine::initialize(void) {
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f); // do i need it here?
 
     // renderer
-    this->renderer = Renderer::Renderer();
     this->renderer.initialize();
     this->renderer.read_shaders("res");
 
     this->renderer.init_preview_cube(); // preview
-    this->collider.pos = {0.0f, 2.0f, 0.0f}; // preview
-    this->collider.radius = 1.0f; // preview
+    // this->collider.pos = {0.0f, 2.0f, 0.0f}; // preview
+    // this->collider.radius = 1.0f; // preview
+    this->collider.min = {0.1f, 1.98f, -0.02f}; // preview
+    this->collider.max = {1.0f, 2.02f, 0.02f}; // preview
 
     // camera
     this->camera.pos = {0.0f, 4.0f, 4.0f};
@@ -63,13 +64,18 @@ void Engine::initialize(void) {
     this->camera.hpos = {0.0f, 1.0f, 0.0f};
     this->camera.yaw = -90.0f;
     this->camera.pitch = 0.0f;
+    this->camera.mx = 0.0;
+    this->camera.my = 0.0;
     this->camera.speed = 4.0f;
     this->camera.sens = 0.1f;
     this->camera.lock = 0;
 
     // gizmo
-    this->gizmo.pos = {0.0f, 2.0f, 0.0f};
     this->gizmo.type = GizmoType::TRANSLATE;
+    this->gizmo.pos = {0.0f, 2.0f, 0.0f};
+    this->gizmo.mx = 0.0;
+    this->gizmo.my = 0.0;
+    this->gizmo.color = {1.0f, 0.0f, 0.0f, 1.0f};
     this->gizmo.visible = 1;
 
     // engine
@@ -130,7 +136,7 @@ void Engine::update(void) {
 
         if (this->gizmo.visible) { // gizmo
             this->renderer.push_cmd(this->gizmo.pos, this->gizmo.pos + Vec3{0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 1.0f, 1.0f}, 2.0f);
-            this->renderer.push_cmd(this->gizmo.pos, this->gizmo.pos + Vec3{1.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f, 1.0f}, 2.0f);
+            this->renderer.push_cmd(this->gizmo.pos, this->gizmo.pos + Vec3{1.0f, 0.0f, 0.0f}, this->gizmo.color, 2.0f);
             this->renderer.push_cmd(this->gizmo.pos, this->gizmo.pos + Vec3{0.0f, 0.0f, 1.0f}, {0.0f, 1.0f, 0.0f, 1.0f}, 2.0f);
         }
 
@@ -197,7 +203,7 @@ void Engine::handle_keyboard(void) {
 void Engine::handle_mouse(void) { // handle more things than only camera hrere lol
     f64 mx, my;
     glfwGetCursorPos(this->platform.window, &mx, &my);
-
+    
     if (this->mode == EngineMode::SELECTION) {
         f32 x = (2.0f * mx) / this->platform.width - 1.0f;
         f32 y = 1.0f - (2.0f * my) / this->platform.height;
@@ -210,9 +216,35 @@ void Engine::handle_mouse(void) { // handle more things than only camera hrere l
         v4 ray = (inverse(this->view) * ray_view);
         v3 direction = normalize({ray.x, ray.y, ray.z});
 
-        if (check_sphere_intersection(this->camera.pos, direction, this->collider.pos, this->collider.radius)) {
+        // if (check_sphere_intersection(this->camera.pos, direction, this->collider.pos, this->collider.radius)) {
+        //     // std::cout << "hit" << std::endl;
+        // } else {}
+
+        if (check_aabb_collision(this->camera.pos, direction, this->collider)) {
+            this->gizmo.color.w = 0.8f;
             // std::cout << "hit" << std::endl;
-        } else {}
+
+            if (glfwGetMouseButton(this->platform.window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
+                if (this->camera.mx == mx) {
+                    // std::cout << "==" << std::endl;
+                    return;
+                }
+                if (this->gizmo.mx > mx) {
+                    this->gizmo.pos.x -= 0.02f;
+                    this->collider.min.x -= 0.02f;
+                    this->collider.max.x -= 0.02f;
+                } else if (this->gizmo.mx < mx) {
+                    this->gizmo.pos.x += 0.02f;
+                    this->collider.min.x += 0.02f;
+                    this->collider.max.x += 0.02f;
+                }
+            }
+        } else {
+            this->gizmo.color.w = 1.0f;
+        }
+
+        this->gizmo.mx = mx;
+        this->gizmo.my = my;
     }
 
     if (this->mode == EngineMode::ROAM) {
