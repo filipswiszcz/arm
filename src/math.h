@@ -200,6 +200,8 @@ Mat4_t inverse(Mat4_t m);
 
 float determinant(Mat4_t m);
 
+Vec3_t project(const Vec3_t position, const Mat4_t view, const Mat4_t projection, const Vec4_t viewport);
+
 // vec<3, T, Q> const& win, mat<4, 4, T, Q> const& model, mat<4, 4, T, Q> const& proj, vec<4, U, Q> const& viewport
 // pointers should be used in args
 Vec3_t unproject(const Vec3_t v, const Mat4_t model, const Mat4_t projection, const Vec4_t viewport);

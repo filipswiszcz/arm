@@ -77,6 +77,7 @@ void Engine::initialize(void) {
     this->gizmo.my = 0.0;
     this->gizmo.color = {1.0f, 0.0f, 0.0f, 1.0f};
     this->gizmo.visible = 1;
+    this->gizmo.lock = 0;
 
     // engine
     this->mode = EngineMode::SELECTION;
@@ -220,27 +221,22 @@ void Engine::handle_mouse(void) { // handle more things than only camera hrere l
         //     // std::cout << "hit" << std::endl;
         // } else {}
 
-        if (check_aabb_collision(this->camera.pos, direction, this->collider)) {
-            this->gizmo.color.w = 0.8f;
-            // std::cout << "hit" << std::endl;
+        u8 collision = check_aabb_collision(this->camera.pos, direction, this->collider);
 
-            if (glfwGetMouseButton(this->platform.window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
-                if (this->camera.mx == mx) {
-                    // std::cout << "==" << std::endl;
-                    return;
-                }
-                if (this->gizmo.mx > mx) {
-                    this->gizmo.pos.x -= 0.02f;
-                    this->collider.min.x -= 0.02f;
-                    this->collider.max.x -= 0.02f;
-                } else if (this->gizmo.mx < mx) {
-                    this->gizmo.pos.x += 0.02f;
-                    this->collider.min.x += 0.02f;
-                    this->collider.max.x += 0.02f;
-                }
-            }
-        } else {
-            this->gizmo.color.w = 1.0f;
+        if (collision && (glfwGetMouseButton(this->platform.window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)) {
+            this->gizmo.lock = 1;
+        } else if (glfwGetMouseButton(this->platform.window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_RELEASE) {
+            this->gizmo.lock = 0;
+        }
+
+        if (collision) this->gizmo.color.w = 0.8f;
+        else this->gizmo.color.w = 1.0f;
+
+        if (this->gizmo.lock) {
+            f32 xdelta = (mx - this->gizmo.mx) * 0.008f;
+            this->gizmo.pos.x += xdelta;
+            this->collider.min.x += xdelta;
+            this->collider.max.x += xdelta;
         }
 
         this->gizmo.mx = mx;

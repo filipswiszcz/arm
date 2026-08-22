@@ -65,6 +65,7 @@ typedef struct {
     f64 mx, my;
     v4 color; // ultra temp
     u8 visible;
+    u8 lock;
 } Gizmo_t;
 
 enum class EngineMode : u8 {

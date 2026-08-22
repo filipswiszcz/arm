@@ -242,22 +242,31 @@ float determinant(Mat4_t m) {
     return d;
 }
 
-// Vec3_t project(const Vec3_t v, const Mat4_t view, const Mat4_t projection, const Vec4_t viewport) {
-//     Vec4_t clip = projection * view * Vec4(v.x, v.y, v.z, 1.0f);
+Vec3_t project(const Vec3_t position, const Mat4_t view, const Mat4_t projection, const Vec4_t viewport) {
+    Vec4_t clip = (projection * view * Vec4{position.x, position.y, position.z, 1.0f});
 
-//     if (clip.w != 0.0f) {
-//         clip.x /= clip.w;
-//         clip.y /= clip.w;
-//         clip.z /= clip.w;
-//     }
+    // if (clip.w != 0.0f) {
+    //     clip.x /= clip.w;
+    //     clip.y /= clip.w;
+    //     clip.z /= clip.w;
+    // }
 
-//     Vec3_t screen;
-//     screen.x = viewport.x + (clip.x + 1.0f) * viewport.z / 2.0f;
-//     screen.y = viewport.y + (clip.y + 1.0f) * viewport.w / 2.0f;
-//     screen.z = clip.z;
+    // Vec3_t screen;
+    // screen.x = viewport.x + (clip.x + 1.0f) * viewport.z / 2.0f;
+    // screen.y = viewport.y + (clip.y + 1.0f) * viewport.w / 2.0f;
+    // screen.z = clip.z;
 
-//     return screen;
-// }
+    // return screen;
+
+    if (clip.w == 0.0f) return Vec3_t{};
+
+    Vec3_t screen;
+    screen.x = (viewport.x + ((clip.x / clip.w) + 1.0f) * viewport.z * 0.5f);
+    screen.y = (viewport.y + (1.0f - (clip.y / clip.w)) * viewport.w * 0.5f);
+    screen.z = (clip.z / clip.w);
+
+    return screen;
+}
 
 // Vec3_t unproject(const Vec3_t v, const Mat4_t view, const Mat4_t projection, const Vec4_t viewport) {
 //     Mat4_t inv = inverse(projection * view);
