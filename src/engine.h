@@ -63,6 +63,7 @@ typedef struct {
     GizmoType type;
     v3 pos;
     f64 mx, my;
+    aabb_collider_t colliders[3];
     v4 color; // ultra temp
     u8 visible;
     u8 lock;
