@@ -78,7 +78,10 @@ void Engine::initialize(void) {
     this->gizmo.colliders[0] = {{0.1f, 1.98f, -0.02f}, {1.0f, 2.02f, 0.02f}, 0};
     this->gizmo.colliders[1] = {{-0.02f, 2.1f, -0.02f}, {0.02f, 3.0f, 0.02f}, 0};
     this->gizmo.colliders[2] = {{-0.02f, 1.98f, 0.1f}, {0.02f, 2.02f, 1.0f}, 0};
-    this->gizmo.color = {1.0f, 0.0f, 0.0f, 1.0f};
+    this->gizmo.colors[0] = {1.0f, 0.0f, 0.0f, 1.0f};
+    this->gizmo.colors[1] = {0.0f, 1.0f, 0.0f, 1.0f};
+    this->gizmo.colors[2] = {0.0f, 0.0f, 1.0f, 1.0f};
+    this->gizmo.step = 0.1f;
     this->gizmo.visible = 1;
     this->gizmo.lock = 0;
 
@@ -139,9 +142,9 @@ void Engine::update(void) {
         this->renderer.push_cmd({1.0f, 1.0f, 1.0f, 1.0f}); // grid
 
         if (this->gizmo.visible) { // gizmo
-            this->renderer.push_cmd(this->gizmo.pos + v3{0.0f, 0.1f, 0.0f}, this->gizmo.pos + v3{0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 1.0f, 1.0f}, 2.0f);
-            this->renderer.push_cmd(this->gizmo.pos + v3{0.1f, 0.0f, 0.0f}, this->gizmo.pos + v3{1.0f, 0.0f, 0.0f}, this->gizmo.color, 2.0f);
-            this->renderer.push_cmd(this->gizmo.pos + v3{0.0f, 0.0f, 0.1f}, this->gizmo.pos + v3{0.0f, 0.0f, 1.0f}, {0.0f, 1.0f, 0.0f, 1.0f}, 2.0f);
+            this->renderer.push_cmd(this->gizmo.pos + v3{0.1f, 0.0f, 0.0f}, this->gizmo.pos + v3{1.0f, 0.0f, 0.0f}, this->gizmo.colors[0], 2.0f);
+            this->renderer.push_cmd(this->gizmo.pos + v3{0.0f, 0.1f, 0.0f}, this->gizmo.pos + v3{0.0f, 1.0f, 0.0f}, this->gizmo.colors[1], 2.0f);
+            this->renderer.push_cmd(this->gizmo.pos + v3{0.0f, 0.0f, 0.1f}, this->gizmo.pos + v3{0.0f, 0.0f, 1.0f}, this->gizmo.colors[2], 2.0f);
         }
 
         Mat4_t model(1.0f);
@@ -238,6 +241,9 @@ void Engine::handle_mouse(void) { // handle more things than only camera hrere l
                         glfwSetInputMode(this->platform.window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
                         break;
                     }
+                    this->gizmo.colors[i].w = 0.8f;
+                } else {
+                    this->gizmo.colors[i].w = 1.0f;
                 }
             }
         }
@@ -246,29 +252,43 @@ void Engine::handle_mouse(void) { // handle more things than only camera hrere l
             f32 xdelta = ((mx - this->gizmo.mx) * 0.008f);
             f32 ydelta = ((this->gizmo.my - my) * 0.008f);
 
-            if (this->gizmo.axis == 0) {
-                this->gizmo.pos.x += xdelta;
-                for (u32 j = 0; j < 3; j++) {
-                    this->gizmo.colliders[j].min.x += xdelta;
-                    this->gizmo.colliders[j].max.x += xdelta;
+            f32 xstep = 0.0f;
+            f32 ystep = 0.0f;
+
+            if (std::abs(xdelta) >= this->gizmo.step) {
+                xstep = std::trunc(xdelta / this->gizmo.step) * this->gizmo.step;
+                this->gizmo.mx += (xstep / 0.008f);
+            }
+            if (std::abs(ydelta) >= this->gizmo.step) {
+                ystep = std::trunc(ydelta / this->gizmo.step) * this->gizmo.step;
+                this->gizmo.my -= (ystep / 0.008f);
+            }
+
+            if (this->gizmo.axis == 0 && xstep != 0.0f) {
+                this->gizmo.pos.x += xstep;
+                for (u32 i = 0; i < 3; i++) {
+                    this->gizmo.colliders[i].min.x += xstep;
+                    this->gizmo.colliders[i].max.x += xstep;
                 }
-            } else if (this->gizmo.axis == 1) {
-                this->gizmo.pos.y += ydelta;
-                for (u32 j = 0; j < 3; j++) {
-                    this->gizmo.colliders[j].min.y += ydelta;
-                    this->gizmo.colliders[j].max.y += ydelta;
+            } else if (this->gizmo.axis == 1 && ystep != 0.0f) {
+                this->gizmo.pos.y += ystep;
+                for (u32 i = 0; i < 3; i++) {
+                    this->gizmo.colliders[i].min.y += ystep;
+                    this->gizmo.colliders[i].max.y += ystep;
                 }
-            } else if (this->gizmo.axis == 2) {
-                this->gizmo.pos.z -= ydelta;
-                for (u32 j = 0; j < 3; j++) {
-                    this->gizmo.colliders[j].min.z -= ydelta;
-                    this->gizmo.colliders[j].max.z -= ydelta;
+            } else if (this->gizmo.axis == 2 && ystep != 0.0f) {
+                this->gizmo.pos.z -= ystep;
+                for (u32 i = 0; i < 3; i++) {
+                    this->gizmo.colliders[i].min.z -= ystep;
+                    this->gizmo.colliders[i].max.z -= ystep;
                 }
             }
         }
 
-        this->gizmo.mx = mx;
-        this->gizmo.my = my;
+        if (!this->gizmo.lock) {
+            this->gizmo.mx = mx;
+            this->gizmo.my = my;
+        }
     }
 
     if (this->mode == EngineMode::ROAM) {
@@ -293,6 +313,8 @@ void Engine::handle_mouse(void) { // handle more things than only camera hrere l
         this->camera.tpos = normalize(target);
     }
 }
+
+void Engine::update_gizmo(void) {}
 
 // other
 

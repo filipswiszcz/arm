@@ -64,7 +64,8 @@ typedef struct {
     v3 pos;
     f64 mx, my;
     aabb_collider_t colliders[3];
-    v4 color; // ultra temp
+    v4 colors[3]; // ultra temp
+    f32 step;
     u8 axis;
     u8 visible;
     u8 lock;
@@ -103,6 +104,8 @@ private:
     void register_key(i32 key, i32 action);
     void handle_keyboard(void);
     void handle_mouse(void);
+
+    void update_gizmo(void);
 };
 
 #endif // !ARM_ENGINE_H
