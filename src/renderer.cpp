@@ -350,6 +350,27 @@ void Renderer::init_preview_cube(void) {
     this->meshes[0] = mesh;
 }
 
+void Renderer::init_preview_cone(void) {
+    struct Mesh mesh = {0};
+    mesh.counter = 48;
+
+    glGenVertexArrays(1, &mesh.vao);
+    glGenBuffers(1, &mesh.vbo);
+    glGenBuffers(1, &mesh.ibo);
+
+    glBindVertexArray(mesh.vao);
+    glBindBuffer(GL_ARRAY_BUFFER, mesh.vbo);
+    glBufferData(GL_ARRAY_BUFFER, 10 * sizeof(v3), PREVIEW_CONE_VERTICES, GL_DYNAMIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.ibo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 48 * sizeof(u32), PREVIEW_CONE_INDICES, GL_DYNAMIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(v3), (void*) 0);
+    glEnableVertexAttribArray(0);
+
+    this->meshes[1] = mesh;
+}
+
 // private
 
 TextureStatus Texture::initialize(std::string path) {

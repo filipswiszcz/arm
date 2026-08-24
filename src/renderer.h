@@ -129,6 +129,7 @@ public:
     void terminate(void);
 // protected:
     void init_preview_cube(void);
+    void init_preview_cone(void);
 private:
     static constexpr u32 MAX_SHADERS = 16;
     static constexpr u32 MAX_TEXTURES = 64;

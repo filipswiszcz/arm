@@ -192,7 +192,9 @@ Mat4_t perspective(float fovy, float aspect, float znear, float zfar);
 
 Mat4_t translate(Mat4_t m, Vec3_t v);
 
-Mat4_t rotate(Mat4_t m, float angle, Vec3_t v);
+Mat4_t rotate(Mat4_t mat, float degrees, Vec3_t axis);
+
+Mat4_t scale(Mat4_t m, Vec3_t s);
 
 Mat4_t look_at(Vec3_t pos, Vec3_t target, Vec3_t up);
 

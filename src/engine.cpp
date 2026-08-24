@@ -53,6 +53,7 @@ void Engine::initialize(void) {
     this->renderer.read_shaders("res");
 
     this->renderer.init_preview_cube(); // preview
+    this->renderer.init_preview_cone(); // preview
     // this->collider.pos = {0.0f, 2.0f, 0.0f}; // preview
     // this->collider.radius = 1.0f; // preview
     this->collider.min = {0.1f, 1.98f, -0.02f}; // preview
@@ -145,6 +146,19 @@ void Engine::update(void) {
             this->renderer.push_cmd(this->gizmo.pos + v3{0.1f, 0.0f, 0.0f}, this->gizmo.pos + v3{1.0f, 0.0f, 0.0f}, this->gizmo.colors[0], 2.0f);
             this->renderer.push_cmd(this->gizmo.pos + v3{0.0f, 0.1f, 0.0f}, this->gizmo.pos + v3{0.0f, 1.0f, 0.0f}, this->gizmo.colors[1], 2.0f);
             this->renderer.push_cmd(this->gizmo.pos + v3{0.0f, 0.0f, 0.1f}, this->gizmo.pos + v3{0.0f, 0.0f, 1.0f}, this->gizmo.colors[2], 2.0f);
+
+            m4 models[3] = {m4{1.0f}, m4{1.0f}, m4{1.0f}};
+            models[0] = scale(models[0], v3{0.04f, 0.1f, 0.04f});
+            models[0] = rotate(models[0], 90.0f, v3{0.0f, 0.0f, 1.0f});
+            models[0] = translate(models[0], this->gizmo.pos + v3{1.05f, 0.0f, 0.0f});
+            this->renderer.push_cmd(1, 0, models[0], this->gizmo.colors[0]);
+            models[1] = scale(models[1], v3{0.04f, 0.1f, 0.04f});
+            models[1] = translate(models[1], (this->gizmo.pos + v3{0.0f, 1.05f, 0.0f}));
+            this->renderer.push_cmd(1, 0, models[1], this->gizmo.colors[1]);
+            models[2] = scale(models[2], v3{0.04f, 0.1f, 0.04f});
+            models[2] = rotate(models[2], -90.0f, v3{1.0f, 0.0f, 0.0f});
+            models[2] = translate(models[2], this->gizmo.pos + v3{0.0f, 0.0f, 1.05f});
+            this->renderer.push_cmd(1, 0, models[2], this->gizmo.colors[2]);
         }
 
         Mat4_t model(1.0f);
@@ -249,19 +263,19 @@ void Engine::handle_mouse(void) { // handle more things than only camera hrere l
         }
 
         if (this->gizmo.lock) {
-            f32 xdelta = ((mx - this->gizmo.mx) * 0.008f);
-            f32 ydelta = ((this->gizmo.my - my) * 0.008f);
+            f32 xdelta = ((mx - this->gizmo.mx) * 0.01f);
+            f32 ydelta = ((this->gizmo.my - my) * 0.01f);
 
             f32 xstep = 0.0f;
             f32 ystep = 0.0f;
 
             if (std::abs(xdelta) >= this->gizmo.step) {
                 xstep = std::trunc(xdelta / this->gizmo.step) * this->gizmo.step;
-                this->gizmo.mx += (xstep / 0.008f);
+                this->gizmo.mx += (xstep / 0.01f);
             }
             if (std::abs(ydelta) >= this->gizmo.step) {
                 ystep = std::trunc(ydelta / this->gizmo.step) * this->gizmo.step;
-                this->gizmo.my -= (ystep / 0.008f);
+                this->gizmo.my -= (ystep / 0.01f);
             }
 
             if (this->gizmo.axis == 0 && xstep != 0.0f) {

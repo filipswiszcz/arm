@@ -139,6 +139,10 @@ Mat4_t translate(Mat4_t m, Vec3_t v) {
     return res;
 }
 
+// Mat4_t rotate(Mat4_t mat, float degrees, Vec3_t axis) {
+
+// }
+
 Mat4_t rotate(Mat4_t m, float angle, Vec3_t v) {
     float const a = radians(angle);
     float const c = cos(a);
@@ -172,6 +176,18 @@ Mat4_t rotate(Mat4_t m, float angle, Vec3_t v) {
     }
 
     return res;
+}
+
+Mat4_t scale(Mat4_t m, Vec3_t s) {
+    // Mat4_t res = Mat4(1.0f);
+    // res.m[0][0] = (m.m[0][0] * s.x);
+    // res.m[1][1] = (m.m[1][1] * s.y);
+    // res.m[2][2] = (m.m[2][2] * s.z);
+    // return res;
+    m.m[0][0] = (m.m[0][0] * s.x);
+    m.m[1][1] = (m.m[1][1] * s.y);
+    m.m[2][2] = (m.m[2][2] * s.z);
+    return m;
 }
 
 Mat4_t look_at(Vec3_t position, Vec3_t target, Vec3_t head) {
