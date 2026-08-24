@@ -19,7 +19,7 @@
 
 #define ENGINE_WINDOW_WIDTH 1920 // px
 #define ENGINE_WINDOW_HEIGHT 1080
-#define ENGINE_WINDOW_NAME "ARM ENGINE (Build v0.0.2)"
+#define ENGINE_WINDOW_NAME "ARM ENGINE (Build v0.0.3)"
 
 #define ENGINE_CLOCK_SIMULATION_FIXED_TIMESTEP (1.0 / 60.0) // 60 fps
 #define ENGINE_CLOCK_ANIMATION_FIXED_TIMESTEP (1.0 / 8.0) // 8 fps
@@ -65,6 +65,7 @@ typedef struct {
     f64 mx, my;
     aabb_collider_t colliders[3];
     v4 color; // ultra temp
+    u8 axis;
     u8 visible;
     u8 lock;
 } Gizmo_t;

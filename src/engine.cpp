@@ -224,40 +224,48 @@ void Engine::handle_mouse(void) { // handle more things than only camera hrere l
         //     // std::cout << "hit" << std::endl;
         // } else {}
 
-        for (u32 i = 0; i < 3; i++) {
-            u8 collision = check_aabb_collision(this->camera.pos, direction, this->gizmo.colliders[i]);
-
-            if (collision && (glfwGetMouseButton(this->platform.window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)) {
-                this->gizmo.lock = 1;
-                glfwSetInputMode(this->platform.window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-                std::cout << "hit" << std::endl;
-            } else if (glfwGetMouseButton(this->platform.window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_RELEASE) {
-                this->gizmo.lock = 0;
-                glfwSetInputMode(this->platform.window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-            }
-
-
+        if (glfwGetMouseButton(this->platform.window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_RELEASE) {
+            this->gizmo.lock = 0;
+            glfwSetInputMode(this->platform.window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
         }
 
-        // u8 collision = check_aabb_collision(this->camera.pos, direction, this->collider);
+        if (!this->gizmo.lock) {
+            for (u32 i = 0; i < 3; i++) {
+                if (check_aabb_collision(this->camera.pos, direction, this->gizmo.colliders[i])) {
+                    if ((glfwGetMouseButton(this->platform.window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)) {
+                        this->gizmo.axis = i;
+                        this->gizmo.lock = 1;
+                        glfwSetInputMode(this->platform.window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+                        break;
+                    }
+                }
+            }
+        }
 
-        // if (collision && (glfwGetMouseButton(this->platform.window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)) {
-        //     this->gizmo.lock = 1;
-        //     glfwSetInputMode(this->platform.window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-        // } else if (glfwGetMouseButton(this->platform.window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_RELEASE) {
-        //     this->gizmo.lock = 0;
-        //     glfwSetInputMode(this->platform.window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-        // }
+        if (this->gizmo.lock) {
+            f32 xdelta = ((mx - this->gizmo.mx) * 0.008f);
+            f32 ydelta = ((this->gizmo.my - my) * 0.008f);
 
-        // if (collision) this->gizmo.color.w = 0.8f;
-        // else this->gizmo.color.w = 1.0f;
-
-        // if (this->gizmo.lock) {
-        //     f32 xdelta = (mx - this->gizmo.mx) * 0.008f;
-        //     this->gizmo.pos.x += xdelta;
-        //     this->collider.min.x += xdelta;
-        //     this->collider.max.x += xdelta;
-        // }
+            if (this->gizmo.axis == 0) {
+                this->gizmo.pos.x += xdelta;
+                for (u32 j = 0; j < 3; j++) {
+                    this->gizmo.colliders[j].min.x += xdelta;
+                    this->gizmo.colliders[j].max.x += xdelta;
+                }
+            } else if (this->gizmo.axis == 1) {
+                this->gizmo.pos.y += ydelta;
+                for (u32 j = 0; j < 3; j++) {
+                    this->gizmo.colliders[j].min.y += ydelta;
+                    this->gizmo.colliders[j].max.y += ydelta;
+                }
+            } else if (this->gizmo.axis == 2) {
+                this->gizmo.pos.z -= ydelta;
+                for (u32 j = 0; j < 3; j++) {
+                    this->gizmo.colliders[j].min.z -= ydelta;
+                    this->gizmo.colliders[j].max.z -= ydelta;
+                }
+            }
+        }
 
         this->gizmo.mx = mx;
         this->gizmo.my = my;
