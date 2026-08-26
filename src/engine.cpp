@@ -266,35 +266,43 @@ void Engine::handle_mouse(void) { // handle more things than only camera hrere l
             f32 xdelta = ((mx - this->gizmo.mx) * 0.01f);
             f32 ydelta = ((this->gizmo.my - my) * 0.01f);
 
-            f32 xstep = 0.0f;
-            f32 ystep = 0.0f;
+            v3 right = normalize(cross(this->camera.tpos, this->camera.hpos));
+            v3 up = normalize(cross(right, this->camera.tpos));
 
-            if (std::abs(xdelta) >= this->gizmo.step) {
-                xstep = std::trunc(xdelta / this->gizmo.step) * this->gizmo.step;
-                this->gizmo.mx += (xstep / 0.01f);
-            }
-            if (std::abs(ydelta) >= this->gizmo.step) {
-                ystep = std::trunc(ydelta / this->gizmo.step) * this->gizmo.step;
-                this->gizmo.my -= (ystep / 0.01f);
-            }
+            v3 axis = {0.0f, 0.0f, 0.0f};
+            if (this->gizmo.axis == 0) axis.x = 1.0f;
+            else if (this->gizmo.axis == 1) axis.y = 1.0f;
+            else if (this->gizmo.axis == 2) axis.z = 1.0f;
 
-            if (this->gizmo.axis == 0 && xstep != 0.0f) {
-                this->gizmo.pos.x += xstep;
-                for (u32 i = 0; i < 3; i++) {
-                    this->gizmo.colliders[i].min.x += xstep;
-                    this->gizmo.colliders[i].max.x += xstep;
-                }
-            } else if (this->gizmo.axis == 1 && ystep != 0.0f) {
-                this->gizmo.pos.y += ystep;
-                for (u32 i = 0; i < 3; i++) {
-                    this->gizmo.colliders[i].min.y += ystep;
-                    this->gizmo.colliders[i].max.y += ystep;
-                }
-            } else if (this->gizmo.axis == 2 && ystep != 0.0f) {
-                this->gizmo.pos.z -= ystep;
-                for (u32 i = 0; i < 3; i++) {
-                    this->gizmo.colliders[i].min.z -= ystep;
-                    this->gizmo.colliders[i].max.z -= ystep;
+            f32 xdir = dot(right, axis);
+            f32 ydir = dot(up, axis);
+
+            f32 adelta = (xdelta * xdir) + (ydelta * ydir);
+
+            if (std::abs(adelta) >= this->gizmo.step) {
+                f32 step = std::trunc(adelta / this->gizmo.step) * this->gizmo.step;
+                
+                this->gizmo.mx += ((step * xdir) / 0.01f);
+                this->gizmo.my -= ((step * ydir) / 0.01f);
+            
+                if (this->gizmo.axis == 0) {
+                    this->gizmo.pos.x += step;
+                    for (u32 i = 0; i < 3; i++) {
+                        this->gizmo.colliders[i].min.x += step;
+                        this->gizmo.colliders[i].max.x += step;
+                    }
+                } else if (this->gizmo.axis == 1) {
+                    this->gizmo.pos.y += step;
+                    for (u32 i = 0; i < 3; i++) {
+                        this->gizmo.colliders[i].min.y += step;
+                        this->gizmo.colliders[i].max.y += step;
+                    }
+                } else if (this->gizmo.axis == 2) {
+                    this->gizmo.pos.z += step;
+                    for (u32 i = 0; i < 3; i++) {
+                        this->gizmo.colliders[i].min.z += step;
+                        this->gizmo.colliders[i].max.z += step;
+                    }
                 }
             }
         }

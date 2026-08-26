@@ -11,11 +11,11 @@ u8 check_aabb_collision(v3 pos, v3 direction, aabb_collider_t collider) {
     f32 tmin = std::max(std::max(std::min(tm0, tm1), std::min(tm2, tm3)), std::min(tm4, tm5));
     f32 tmax = std::min(std::min(std::max(tm0, tm1), std::max(tm2, tm3)), std::max(tm4, tm5));
 
-    if (tmin < 0) return tmax;
+    if (tmin < 0) return 1;
     if (tmax < 0) return 0;
     if (tmin > tmax) return 0;
     
-    return tmin;
+    return 1;
 }
 
 u8 check_sphere_intersection(v3 origin, v3 direction, v3 center, f32 radius) {
