@@ -61,10 +61,10 @@ void Engine::initialize(void) {
 
     // camera
     this->camera.pos = {0.0f, 4.0f, 4.0f};
-    this->camera.tpos = {0.0f, -0.5f, -1.0f};
+    this->camera.tpos = normalize(v3{0.0f, -0.5f, -1.0f});
     this->camera.hpos = {0.0f, 1.0f, 0.0f};
-    this->camera.yaw = -90.0f;
-    this->camera.pitch = 0.0f;
+    this->camera.yaw = degrees(atan2(this->camera.tpos.z, this->camera.tpos.x));
+    this->camera.pitch = degrees(asin(this->camera.tpos.y));
     this->camera.mx = 0.0;
     this->camera.my = 0.0;
     this->camera.speed = 4.0f;
@@ -122,7 +122,7 @@ void Engine::update(void) {
 
             //..
 
-            this->clock.phys.accum -= ENGINE_CLOCK_SIMULATION_FIXED_TIMESTEP;
+            this->clock.phys.accum -= ENGINE_CLOCK_SIMULATION_FIXED_TIMESTEP; 
         }
 
         this->clock.anim.accum += this->clock.dt;
@@ -190,18 +190,6 @@ void Engine::register_key(i32 key, i32 action) {
 }
 
 void Engine::handle_keyboard(void) {
-    if (glfwGetMouseButton(this->platform.window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) {
-        if (this->mode != EngineMode::ROAM) { // do it with events or smth (works for now)
-            this->mode = EngineMode::ROAM;
-            glfwSetInputMode(this->platform.window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-            glfwSetCursorPos(this->platform.window, this->camera.mx, this->camera.my);
-        }
-    } else if (glfwGetMouseButton(this->platform.window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_RELEASE) {
-        if (this->mode != EngineMode::SELECTION) {
-            this->mode = EngineMode::SELECTION;
-            glfwSetInputMode(this->platform.window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-        }
-    }
     if (this->mode == EngineMode::ROAM) {
         if (this->platform.keys[GLFW_KEY_W] == GLFW_PRESS) {
             this->camera.pos = (this->camera.pos + (this->camera.tpos * this->camera.speed * this->clock.dt));
@@ -222,6 +210,19 @@ void Engine::handle_keyboard(void) {
 }
 
 void Engine::handle_mouse(void) { // handle more things than only camera hrere lol
+    if (glfwGetMouseButton(this->platform.window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) {
+        if (this->mode != EngineMode::ROAM) { // do it with events or smth (works for now)
+            this->mode = EngineMode::ROAM;
+            glfwSetInputMode(this->platform.window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+            glfwSetCursorPos(this->platform.window, this->camera.mx, this->camera.my);
+        }
+    } else if (glfwGetMouseButton(this->platform.window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_RELEASE) {
+        if (this->mode != EngineMode::SELECTION) {
+            this->mode = EngineMode::SELECTION;
+            glfwSetInputMode(this->platform.window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+        }
+    }
+
     f64 mx, my;
     glfwGetCursorPos(this->platform.window, &mx, &my);
     
@@ -326,13 +327,13 @@ void Engine::handle_mouse(void) { // handle more things than only camera hrere l
         if (this->camera.pitch > 89.0f) this->camera.pitch = 89.0f;
         if (this->camera.pitch < -89.0f) this->camera.pitch = -89.0f;
 
-        v3 target = {
+        v3 direction = {
             (cos(radians(this->camera.yaw)) * cos(radians(this->camera.pitch))),
             sin(radians(this->camera.pitch)),
             (sin(radians(this->camera.yaw)) * cos(radians(this->camera.pitch)))
         };
 
-        this->camera.tpos = normalize(target);
+        this->camera.tpos = normalize(direction);
     }
 }
 

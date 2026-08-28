@@ -8,6 +8,8 @@
 
 // FLOAT
 
+float degrees(float radians);
+
 float radians(float degrees);
 
 /*float sin(float v);
