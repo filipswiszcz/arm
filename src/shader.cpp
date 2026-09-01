@@ -38,14 +38,6 @@ ShaderStatus Shader::use(void) {
     return ShaderStatus::SUCCESS;
 }
 
-ShaderStatus Shader::set(std::string name, u32 val) {
-    if (!ENGINE_ASSERT(name.c_str() != NULL)) {
-        return ShaderStatus::INVALID_PARAMETER;
-    }
-    glUniform1ui(glGetUniformLocation(this->program, name.c_str()), val);
-    return ShaderStatus::SUCCESS;
-}
-
 ShaderStatus Shader::set(std::string name, f32 val) {
     if (!ENGINE_ASSERT(name.c_str() != NULL)) {
         return ShaderStatus::INVALID_PARAMETER;
@@ -54,11 +46,99 @@ ShaderStatus Shader::set(std::string name, f32 val) {
     return ShaderStatus::SUCCESS;
 }
 
+ShaderStatus Shader::set(std::string name, f64 val) {
+    if (!ENGINE_ASSERT(name.c_str() != NULL)) {
+        return ShaderStatus::INVALID_PARAMETER;
+    }
+    glUniform1d(glGetUniformLocation(this->program, name.c_str()), val);
+    return ShaderStatus::SUCCESS;
+}
+
+ShaderStatus Shader::set(std::string name, i8 val) {
+    if (!ENGINE_ASSERT(name.c_str() != NULL)) {
+        return ShaderStatus::INVALID_PARAMETER;
+    }
+    glUniform1i(glGetUniformLocation(this->program, name.c_str()), val);
+    return ShaderStatus::SUCCESS;
+}
+
+ShaderStatus Shader::set(std::string name, i16 val) {
+    if (!ENGINE_ASSERT(name.c_str() != NULL)) {
+        return ShaderStatus::INVALID_PARAMETER;
+    }
+    glUniform1i(glGetUniformLocation(this->program, name.c_str()), val);
+    return ShaderStatus::SUCCESS;
+}
+
+ShaderStatus Shader::set(std::string name, i32 val) {
+    if (!ENGINE_ASSERT(name.c_str() != NULL)) {
+        return ShaderStatus::INVALID_PARAMETER;
+    }
+    glUniform1i(glGetUniformLocation(this->program, name.c_str()), val);
+    return ShaderStatus::SUCCESS;
+}
+
+ShaderStatus Shader::set(std::string name, i64 val) {
+    if (!ENGINE_ASSERT(name.c_str() != NULL)) {
+        return ShaderStatus::INVALID_PARAMETER;
+    }
+    glUniform1i(glGetUniformLocation(this->program, name.c_str()), val);
+    return ShaderStatus::SUCCESS;
+}
+
+ShaderStatus Shader::set(std::string name, u8 val) {
+    if (!ENGINE_ASSERT(name.c_str() != NULL)) {
+        return ShaderStatus::INVALID_PARAMETER;
+    }
+    glUniform1ui(glGetUniformLocation(this->program, name.c_str()), val);
+    return ShaderStatus::SUCCESS;
+}
+
+ShaderStatus Shader::set(std::string name, u16 val) {
+    if (!ENGINE_ASSERT(name.c_str() != NULL)) {
+        return ShaderStatus::INVALID_PARAMETER;
+    }
+    glUniform1ui(glGetUniformLocation(this->program, name.c_str()), val);
+    return ShaderStatus::SUCCESS;
+}
+
+ShaderStatus Shader::set(std::string name, u32 val) {
+    if (!ENGINE_ASSERT(name.c_str() != NULL)) {
+        return ShaderStatus::INVALID_PARAMETER;
+    }
+    glUniform1ui(glGetUniformLocation(this->program, name.c_str()), val);
+    return ShaderStatus::SUCCESS;
+}
+
+ShaderStatus Shader::set(std::string name, u64 val) {
+    if (!ENGINE_ASSERT(name.c_str() != NULL)) {
+        return ShaderStatus::INVALID_PARAMETER;
+    }
+    glUniform1ui(glGetUniformLocation(this->program, name.c_str()), val);
+    return ShaderStatus::SUCCESS;
+}
+
+ShaderStatus Shader::set(std::string name, v2 vec) {
+    if (!ENGINE_ASSERT(name.c_str() != NULL)) {
+        return ShaderStatus::INVALID_PARAMETER;
+    }
+    glUniform2f(glGetUniformLocation(this->program, name.c_str()), vec.x, vec.y);
+    return ShaderStatus::SUCCESS;
+}
+
 ShaderStatus Shader::set(std::string name, v3 vec) {
     if (!ENGINE_ASSERT(name.c_str() != NULL)) {
         return ShaderStatus::INVALID_PARAMETER;
     }
     glUniform3f(glGetUniformLocation(this->program, name.c_str()), vec.x, vec.y, vec.z);
+    return ShaderStatus::SUCCESS;
+}
+
+ShaderStatus Shader::set(std::string name, v4 vec) {
+    if (!ENGINE_ASSERT(name.c_str() != NULL)) {
+        return ShaderStatus::INVALID_PARAMETER;
+    }
+    glUniform4f(glGetUniformLocation(this->program, name.c_str()), vec.x, vec.y, vec.z, vec.w);
     return ShaderStatus::SUCCESS;
 }
 
