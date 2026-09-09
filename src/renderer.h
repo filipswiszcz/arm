@@ -15,8 +15,11 @@
 namespace Renderer {
 
 typedef u16 shID; // shader
+typedef u16 txID; // texture
 typedef u16 maID; // material
 typedef u16 meID; // mesh
+typedef u16 moID; // model
+typedef u16 skID; // skeleton
 
 enum class TextureStatus : u8 {
     SUCCESS = 0,
@@ -39,16 +42,60 @@ private:
     TextureStatus destroy(void);
 };
 
+// enum class MaterialType : u8 {};
+
 struct Material {
-    shID id;
-    v4 color;
-    f32 roughness, metallic;
-    u16 albedo; // ?
+    shID shader; // temp
+    v4 base_color;
+
+    f32 metallic;
+    f32 roughness;
+
+    txID albedo;
+    txID normal;
+    txID met_roughness;
+    txID occlusion;
+    txID emissive;
 };
 
 struct Mesh {
     u32 vao, vbo, ibo;
-    u32 counter; // mv to size?
+    u32 vert_counter;
+    u32 ind_counter; // mv to size?
+    u8 skinned;
+};
+
+struct Bone {
+    i32 parent;
+    m4 inverse_bind;
+    m4 local_transform;
+};
+
+struct Skeleton {
+    Bone *bones;
+    u32 counter;
+};
+
+struct SkeletonPose {
+    m4 *transforms;
+    u32 counter;
+};
+
+struct ModelPart {
+    meID mesh;
+    maID material;
+};
+
+struct Model {
+    ModelPart *parts;
+    u32 part_counter;
+    skID skeleton;
+};
+
+struct Transform {
+    v3 position;
+    q4 rotation;
+    v3 scale;
 };
 
 typedef struct {
@@ -108,7 +155,7 @@ typedef struct {
     meID mesh;
     maID material;
 
-    u32 index;
+    u32 instance;
 } RendererCommand_t;
 
 class Renderer {
@@ -116,14 +163,16 @@ public:
     void initialize(void);
     void read_shaders(const char *path);
     void read_textures(const char *path);
-    void read_meshes(const char *path);
     void read_materials(const char *path);
+    void read_meshes(const char *path);
+    void read_models(const char *path);
     void push_cmd(v4 color); // ? (grid)
-    void push_cmd(meID mesh, maID material, m4 transform, v4 tint);
+    void push_cmd(meID mesh, maID material, m4 transform, v4 tint); // mesh
     // void push_cmd(const char *mesh, ..) look up table [str => meID?]?
-    void push_cmd(const char *text, v2 pos, f32 scale, v4 color);
-    void push_cmd(v3 start, v3 end, v4 color, f32 thickness);
-    void push_cmd(v3 pos, v4 color, f32 thickness);
+    void push_cmd(moID model, m4 transform, v4 tint); // model
+    void push_cmd(const char *text, v2 pos, f32 scale, v4 color); // text
+    void push_cmd(v3 start, v3 end, v4 color, f32 thickness); // line
+    void push_cmd(v3 pos, v4 color, f32 thickness); // dot
     // void draw(void);
     void draw(m4 view_proj, v3 cam_pos); // temp solution
     void terminate(void);
@@ -134,7 +183,9 @@ private:
     static constexpr u32 MAX_SHADERS = 16;
     static constexpr u32 MAX_TEXTURES = 64;
     static constexpr u32 MAX_MATERIALS = 128;
-    static constexpr u32 MAX_MESHES = 64;
+    static constexpr u32 MAX_MESHES = 128;
+    static constexpr u32 MAX_MODELS = 64;
+    static constexpr u32 MAX_SKELETONS = 64;
     static constexpr u32 MAX_INSTANCES = 2048;
     static constexpr u32 MAX_LINES = 4096;
     static constexpr u32 MAX_DOTS = 2048;
@@ -143,8 +194,10 @@ private:
     Shader shaders[MAX_SHADERS];
     Texture textures[MAX_TEXTURES];
 
-    struct Mesh meshes[MAX_MESHES];
     struct Material materials[MAX_MATERIALS];
+    struct Mesh meshes[MAX_MESHES];
+    struct Model models[MAX_MODELS];
+    struct Skeleton skeletons[MAX_SKELETONS];
 
     RendererCommand_t commands[MAX_INSTANCES];
     u32 cmd_counter = 0;

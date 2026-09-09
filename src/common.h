@@ -24,6 +24,7 @@ typedef Vec4_t v4;
 // typedef Mat2_t m2;
 // typedef Mat3_t m3;
 typedef Mat4_t m4;
+typedef Quat_t q4;
 
 static_assert(sizeof(f32) == 4, "Float must be exactly 4 bytes");
 static_assert(sizeof(f64) == 8, "Double must be exactly 8 bytes");
@@ -45,18 +46,16 @@ static uint32_t PREVIEW_CUBE_INDICES[36] = {
 };
 
 static Vec3_t PREVIEW_CONE_VERTICES[10] = {
-    { 0.0f,  0.5f,  0.0f},
-
-    {-0.5f, -0.5f,  0.0f},
-    {-0.3536f, -0.5f,  0.3536f},
-    { 0.0f, -0.5f,  0.5f},
-    { 0.3536f, -0.5f,  0.3536f},
-    { 0.5f, -0.5f,  0.0f},
-    { 0.3536f, -0.5f, -0.3536f},
-    { 0.0f, -0.5f, -0.5f},
+    {0.0f, 0.5f, 0.0f},
+    {-0.5f, -0.5f, 0.0f},
+    {-0.3536f, -0.5f, 0.3536f},
+    {0.0f, -0.5f, 0.5f},
+    {0.3536f, -0.5f, 0.3536f},
+    {0.5f, -0.5f, 0.0f},
+    {0.3536f, -0.5f, -0.3536f},
+    {0.0f, -0.5f, -0.5f},
     {-0.3536f, -0.5f, -0.3536f},
-
-    { 0.0f, -0.5f, 0.0f}
+    {0.0f, -0.5f, 0.0f}
 };
 
 static uint32_t PREVIEW_CONE_INDICES[48] = {

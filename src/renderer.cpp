@@ -134,22 +134,16 @@ void Renderer::push_cmd(v4 color) {
 }
 
 void Renderer::push_cmd(meID mesh, maID material, m4 transform, v4 tint) {
+    if (this->cmd_counter >= MAX_INSTANCES) return;
+    if (this->inst_counter >= MAX_INSTANCES) return;
 
     this->instances[this->inst_counter] = {transform, tint};
 
     u64 key = 0;
     key |= ((u64) RendererPass::OPAQUE << 60);
-    key |= ((u64) this->materials[material].id << 44);
+    key |= ((u64) this->materials[material].shader << 44);
     key |= ((u64) material << 28);
     key |= ((u64) mesh << 12);
-
-    // RendererCommand_t command = {
-    //     .key = key,
-    //     .type = RendererCommandType::MESH,
-    //     .mesh = mesh,
-    //     .material = material,
-    //     .index = this->inst_counter
-    // };
 
     RendererCommand_t command = {
         key,
@@ -187,7 +181,7 @@ void Renderer::push_cmd(v3 start, v3 end, v4 color, f32 thickness) {
     RendererCommand_t command = {};
     command.key = key;
     command.type = RendererCommandType::LINE;
-    command.index = this->line_counter;
+    command.instance = this->line_counter;
 
     this->commands[this->cmd_counter++] = command;
     this->line_counter++;
@@ -203,7 +197,7 @@ void Renderer::push_cmd(v3 pos, v4 color, f32 thickness) {
     RendererCommand_t command = {};
     command.key = key;
     command.type = RendererCommandType::DOT;
-    command.index = this->dot_counter;
+    command.instance = this->dot_counter;
 
     this->commands[this->cmd_counter++] = command;
     this->dot_counter++;
@@ -254,20 +248,20 @@ void Renderer::draw(m4 view_proj, v3 cam_pos) {
                     chunks++;
                 }
 
-                chunk[chunkstances] = this->instances[command->index];
+                chunk[chunkstances] = this->instances[command->instance];
 
                 glBindBuffer(GL_UNIFORM_BUFFER, this->gpu.mesh.ubo);
                 glBufferSubData(GL_UNIFORM_BUFFER, chunkstances * sizeof(GPUInstanceData_t), sizeof(GPUInstanceData_t), &chunk[chunkstances]);
 
-                if (this->materials[command->material].id != shader) {
-                    shader = this->materials[command->material].id;
+                if (this->materials[command->material].shader != shader) {
+                    shader = this->materials[command->material].shader;
                     this->shaders[shader].use();
                 }
 
                 this->shaders[shader].set("u_Index", chunkstances);
 
                 glBindVertexArray(this->meshes[command->mesh].vao);
-                glDrawElements(GL_TRIANGLES, this->meshes[command->mesh].counter, GL_UNSIGNED_INT, 0);
+                glDrawElements(GL_TRIANGLES, this->meshes[command->mesh].ind_counter, GL_UNSIGNED_INT, 0);
 
                 // std::cout << "MESH" << std::endl;
 
@@ -282,7 +276,7 @@ void Renderer::draw(m4 view_proj, v3 cam_pos) {
                     glBindBuffer(GL_ARRAY_BUFFER, this->gpu.line.vbo);
                     glBufferSubData(GL_ARRAY_BUFFER, 0, this->line_counter * sizeof(GPULineData_t), this->lines);
 
-                    glLineWidth(this->lines[command->index].thickness); // does it even work somewhere?
+                    glLineWidth(this->lines[command->instance].thickness); // does it even work somewhere?
 
                     glDisable(GL_DEPTH_TEST); // temp?
                     glDepthMask(GL_FALSE);
@@ -331,7 +325,8 @@ void Renderer::terminate(void) {}
 
 void Renderer::init_preview_cube(void) {
     struct Mesh mesh = {0};
-    mesh.counter = 36;
+    mesh.vert_counter = 8;
+    mesh.ind_counter = 36;
 
     glGenVertexArrays(1, &mesh.vao);
     glGenBuffers(1, &mesh.vbo);
@@ -348,11 +343,31 @@ void Renderer::init_preview_cube(void) {
     glEnableVertexAttribArray(0);
 
     this->meshes[0] = mesh;
+
+    // std::unordered_map<v3, > map;
+    // for (u32 i = 0; i < 33; i += 3) {
+    //     i32 face[3] = {
+    //         PREVIEW_CUBE_INDICES[i], 
+    //         PREVIEW_CUBE_INDICES[i + 1], 
+    //         PREVIEW_CUBE_INDICES[i + 2]
+    //     };
+
+    //     std::cout << face[0] << face[1] << face[2] << std::endl;
+
+    //     i32 next_face[3] = {
+    //         PREVIEW_CUBE_INDICES[i + 3], 
+    //         PREVIEW_CUBE_INDICES[i + 4], 
+    //         PREVIEW_CUBE_INDICES[i + 5]
+    //     };
+
+    //     std::cout << "> " << next_face[0] << next_face[1] << next_face[2] << std::endl;
+    // }
 }
 
 void Renderer::init_preview_cone(void) {
     struct Mesh mesh = {0};
-    mesh.counter = 48;
+    mesh.vert_counter = 10;
+    mesh.ind_counter = 48;
 
     glGenVertexArrays(1, &mesh.vao);
     glGenBuffers(1, &mesh.vbo);
