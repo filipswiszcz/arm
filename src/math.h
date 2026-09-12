@@ -1,5 +1,5 @@
-#ifndef __MATH_H__
-#define __MATH_H__
+#ifndef ARM_MATH_H
+#define ARM_MATH_H
 
 #include <cmath>
 #include <cstdint>
@@ -216,4 +216,4 @@ typedef Vec4_t Quat_t;
 
 Mat4_t rotate_quat(Mat4_t m, Quat_t q);
 
-#endif // !__MATH_H_
+#endif // !ARM_MATH_H

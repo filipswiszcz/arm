@@ -1,5 +1,5 @@
-#ifndef __SHADER_H__
-#define __SHADER_H__
+#ifndef ARM_SHADER_H
+#define ARM_SHADER_H
 
 #include <fstream>
 #include <string>
@@ -64,4 +64,4 @@ private:
 
 }
 
-#endif // !__SHADER_H__
+#endif // !ARM_SHADER_H
