@@ -2,6 +2,7 @@
 #define ARM_COMMON_H
 
 #include <cstdint>
+#include <algorithm>
 
 #include "math.h"
 
