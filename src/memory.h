@@ -3,10 +3,9 @@
 
 #include "common.h"
 
-#define MEM_ARENA_DEFAULT_ALIGN alignof(std::max_align_t)
-#define MEM_ARENA_HEAD_CAST(type, ptr) static_cast<type>(ptr)
+static constexpr size_t default_alignment = alignof(std::max_align_t);
 
-namespace Core {
+namespace core {
 
 // typedef struct MemoryArena {
 //     u8 *head;
@@ -14,17 +13,35 @@ namespace Core {
 //     size_t capacity;
 // };
 
-class MemoryArena {
+enum class allocator_status : u8 {
+    SUCCESS = 0,
+    NOT_INITIALIZED,
+    OUT_OF_MEMORY,
+    INVALID_ALIGNMENT
+};
+
+class sys_allocator {};
+
+struct allocation_result {
+    allocator_status status;
+    void *ptr;
+};
+
+class linear_allocator {
 public:
-    void initialize(void * const head, const size_t capacity);
-    void allocate(const size_t size);
-    void free(void);
+    [[nodiscard]] allocator_status initialize(void * const head, const size_t capacity);
+    [[nodiscard]] allocation_result allocate(const size_t size, const size_t alignment = default_alignment);
+    void reset(void);
 private:
     u8 *head;
     size_t used;
     size_t capacity;
 };
 
+class pool_allocator {};
+
+class double_buffered_allocator {};
+
 }
 
-#endif //ARM_MEMORY_H
+#endif // !ARM_MEMORY_H

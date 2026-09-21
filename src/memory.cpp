@@ -1,13 +1,13 @@
 #include "memory.h"
 
-namespace Core {
+namespace core {
 
 // public
 
-void MemoryArena::initialize(void * const head, const size_t capacity) {}
+// allocator_status linear_allocator::initialize(void * const head, const size_t capacity) {}
 
-void MemoryArena::allocate(const size_t size) {}
+// allocation_result linear_allocator::allocate(const size_t size, const size_t alignment) {}
 
-void MemoryArena::free(void) {}
+// void linear_allocator::reset(void) {}
 
 }
