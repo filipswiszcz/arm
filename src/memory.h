@@ -15,19 +15,23 @@ namespace core {
 
 enum class allocator_status : u8 {
     SUCCESS = 0,
-    NOT_INITIALIZED,
     OUT_OF_MEMORY,
     INVALID_ARGUMENT,
     INVALID_CAPACITY,
     INVALID_SIZE,
-    INVALID_ALIGNMENT
+    INVALID_ALIGNMENT,
+    UNMAP_FAIL
 };
-
-class sys_allocator {};
 
 struct allocation_result {
     allocator_status status;
     void *ptr;
+};
+
+class sys_allocator { // stateless
+public:
+    [[nodiscard]] allocation_result allocate(const size_t size);
+    [[nodiscard]] allocator_status free(void * const ptr, const size_t size);
 };
 
 class linear_allocator {
