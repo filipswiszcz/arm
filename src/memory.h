@@ -17,6 +17,9 @@ enum class allocator_status : u8 {
     SUCCESS = 0,
     NOT_INITIALIZED,
     OUT_OF_MEMORY,
+    INVALID_ARGUMENT,
+    INVALID_CAPACITY,
+    INVALID_SIZE,
     INVALID_ALIGNMENT
 };
 
