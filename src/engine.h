@@ -71,6 +71,14 @@ typedef struct {
     u8 lock;
 } Gizmo_t;
 
+typedef struct {
+    u16 id;
+    v3 pos, origin;
+    aabb_collider_t collider;
+    v4 color;
+    //..
+} Object_t;
+
 enum class EngineMode : u8 {
     SELECTION,
     ROAM
@@ -93,6 +101,9 @@ private:
 
     Camera_t camera;
     Gizmo_t gizmo;
+
+    Object_t objects[4];
+    i32 selected_obj;
 
     EngineMode mode;
     

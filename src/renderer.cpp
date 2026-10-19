@@ -1,3 +1,8 @@
+#include <vector>
+
+#define CGLTF_IMPLEMENTATION
+#include <cgltf/cgltf.h>
+
 #include "renderer.h"
 
 namespace Renderer {
@@ -112,7 +117,67 @@ void Renderer::read_shaders(const char *path) { // temp solution
 
 void Renderer::read_textures(const char *path) {}
 
-void Renderer::read_meshes(const char *path) {}
+void Renderer::read_meshes(const char *path) { // to complete destruction
+    cgltf_options options = {};
+    cgltf_data* data = nullptr;
+    
+    if (cgltf_parse_file(&options, path, &data) != cgltf_result_success) return;
+    cgltf_load_buffers(&options, data, path);
+
+    if (data->meshes_count == 0 || data->meshes[0].primitives_count == 0) {
+        cgltf_free(data);
+        return;
+    }
+
+    cgltf_primitive* prim = &data->meshes[0].primitives[0];
+    cgltf_accessor* pos_acc = nullptr;
+    for (cgltf_size i = 0; i < prim->attributes_count; ++i) {
+        if (prim->attributes[i].type == cgltf_attribute_type_position) {
+            pos_acc = prim->attributes[i].data;
+            break;
+        }
+    }
+    
+    if (!pos_acc) { cgltf_free(data); return; }
+
+    std::vector<v3> positions(pos_acc->count);
+    cgltf_accessor_unpack_floats(pos_acc, (float*)positions.data(), pos_acc->count * 3);
+
+    std::vector<u32> indices;
+    if (prim->indices) {
+        indices.resize(prim->indices->count);
+        for (cgltf_size i = 0; i < prim->indices->count; ++i) {
+            indices[i] = (u32)cgltf_accessor_read_index(prim->indices, i);
+        }
+    } else {
+        indices.resize(pos_acc->count);
+        for (u32 i = 0; i < pos_acc->count; ++i) indices[i] = i;
+    }
+
+    struct Mesh mesh = {0};
+    mesh.vert_counter = positions.size();
+    mesh.ind_counter = indices.size();
+
+    glGenVertexArrays(1, &mesh.vao);
+    glGenBuffers(1, &mesh.vbo);
+    glGenBuffers(1, &mesh.ibo);
+
+    glBindVertexArray(mesh.vao);
+    
+    glBindBuffer(GL_ARRAY_BUFFER, mesh.vbo);
+    glBufferData(GL_ARRAY_BUFFER, positions.size() * sizeof(v3), positions.data(), GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.ibo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(u32), indices.data(), GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(v3), (void*)0);
+    glEnableVertexAttribArray(0);
+    glBindVertexArray(0);
+
+    this->meshes[2] = mesh; 
+
+    cgltf_free(data);
+}
 
 void Renderer::read_materials(const char *path) {}
 

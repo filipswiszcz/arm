@@ -51,13 +51,12 @@ void Engine::initialize(void) {
     // renderer
     this->renderer.initialize();
     this->renderer.read_shaders("res");
+    this->renderer.read_meshes("res/model/johnny.glb");
 
     this->renderer.init_preview_cube(); // preview
     this->renderer.init_preview_cone(); // preview
     // this->collider.pos = {0.0f, 2.0f, 0.0f}; // preview
     // this->collider.radius = 1.0f; // preview
-    this->collider.min = {0.1f, 1.98f, -0.02f}; // preview
-    this->collider.max = {1.0f, 2.02f, 0.02f}; // preview
 
     // camera
     this->camera.pos = {0.0f, 4.0f, 4.0f};
@@ -83,8 +82,37 @@ void Engine::initialize(void) {
     this->gizmo.colors[1] = {0.0f, 1.0f, 0.0f, 1.0f};
     this->gizmo.colors[2] = {0.0f, 0.0f, 1.0f, 1.0f};
     this->gizmo.step = 0.1f;
-    this->gizmo.visible = 1;
+    this->gizmo.visible = 0;
     this->gizmo.lock = 0;
+
+    // objects ultra temp
+    this->objects[0].id = 0;
+    this->objects[0].pos = v3{0.0f, 0.0f, 0.0f};
+    this->objects[0].origin = v3{0.0f, 0.0f, 0.0f};
+    this->objects[0].collider.min = {-0.5f, -0.5f, 0.5f};
+    this->objects[0].collider.max = {0.5f, 0.5f, -0.5f};
+    this->objects[0].color = {0.0f, 0.0f, 0.0f, 1.0f};
+
+    this->objects[1].id = 0;
+    this->objects[1].pos = v3{2.0f, 4.0f, 6.0f};
+    this->objects[1].origin = v3{0.0f, 0.0f, 0.0f};
+    this->objects[1].collider.min = {1.5f, 3.5f, 5.5f};
+    this->objects[1].collider.max = {2.5f, 4.5f, 6.5f};
+    this->objects[1].color = {0.0f, 0.0f, 0.0f, 1.0f};
+
+    this->objects[2].id = 0;
+    this->objects[2].pos = v3{-2.0f, 1.0f, 8.0f};
+    this->objects[2].origin = v3{0.0f, 0.0f, 0.0f};
+    this->objects[2].collider.min = {-2.5f, 0.5f, 7.5f};
+    this->objects[2].collider.max = {-1.5f, 1.5f, 8.5f};
+    this->objects[2].color = {0.0f, 0.0f, 0.0f, 1.0f};
+
+    this->objects[3].id = 0;
+    this->objects[3].pos = v3{-5.0f, 0.0f, 0.0f};
+    this->objects[3].origin = v3{0.0f, 0.0f, 0.0f};
+    this->objects[3].collider.min = {-5.5f, -0.5f, 0.5f};
+    this->objects[3].collider.max = {-4.5f, 0.5f, -0.5f};
+    this->objects[3].color = {0.0f, 0.0f, 0.0f, 1.0f};
 
     // engine
     this->mode = EngineMode::SELECTION;
@@ -161,9 +189,15 @@ void Engine::update(void) {
             this->renderer.push_cmd(1, 0, models[2], this->gizmo.colors[2]);
         }
 
-        Mat4_t model(1.0f);
-        model = translate(model, {0.0f, 2.0f, 0.0f});
-        this->renderer.push_cmd(0, 0, model, {0.0f, 0.0f, 0.0f, 1.0f}); // cube
+        for (u32 i = 0; i < 4; i++) {
+            Mat4_t model(1.0f);
+            model = translate(model, this->objects[i].pos);
+            this->renderer.push_cmd(this->objects[i].id, 0, model, this->objects[i].color); // cube
+        }
+
+        Mat4_t mmodel(1.0f);
+        mmodel = translate(mmodel, v3{0.0f, 0.0f, 0.0f});
+        this->renderer.push_cmd(2, 0, mmodel, v4{0.8f, 0.8f, 0.8f, 1.0f});
 
         this->renderer.draw((this->projection * this->view), this->camera.pos);
 
@@ -241,6 +275,44 @@ void Engine::handle_mouse(void) { // handle more things than only camera hrere l
         // if (check_sphere_intersection(this->camera.pos, direction, this->collider.pos, this->collider.radius)) {
         //     // std::cout << "hit" << std::endl;
         // } else {}
+
+        // if (glfwGetMouseButton(this->platform.window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
+        //     u8 collided = 0;
+        //     for (u32 i = 0; i < 4; i++) {
+        //         if (check_aabb_collision(this->camera.pos, direction, this->objects[i].collider)) {
+        //             if (this->selected_obj != i) {
+        //                 this->objects[i].color.w = 0.8f;
+        //                 this->selected_obj = i;
+        //             }
+
+        //             this->gizmo.pos = this->objects[i].pos;
+        //             this->gizmo.colliders[0] = {
+        //                 {this->gizmo.pos.x + 0.1f, this->gizmo.pos.y - 0.02f, this->gizmo.pos.z - 0.02f}, 
+        //                 {this->gizmo.pos.x + 1.0f, this->gizmo.pos.y + 0.02f, this->gizmo.pos.z + 0.02f}, 
+        //                 0
+        //             };
+        //             this->gizmo.colliders[1] = {
+        //                 {this->gizmo.pos.x - 0.02f, this->gizmo.pos.y + 0.1f, this->gizmo.pos.z - 0.02f}, 
+        //                 {this->gizmo.pos.x + 0.02f, this->gizmo.pos.y + 1.0f, this->gizmo.pos.z + 0.02f}, 
+        //                 0
+        //             };
+        //             this->gizmo.colliders[2] = {
+        //                 {this->gizmo.pos.x - 0.02f, this->gizmo.pos.y - 0.02f, this->gizmo.pos.z + 0.1f}, 
+        //                 {this->gizmo.pos.x + 0.02f, this->gizmo.pos.y + 0.02f, this->gizmo.pos.z + 1.0f}, 
+        //                 0
+        //             };
+        //             this->gizmo.visible = 1;
+
+        //             collided = 1;
+        //         }
+        //     }
+
+        //     if (!collided) {
+        //         this->gizmo.visible = 0;
+        //         this->objects[selected_obj].color.w = 1.0f;
+        //         this->selected_obj = -1;
+        //     }
+        // }
 
         if (glfwGetMouseButton(this->platform.window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_RELEASE) {
             this->gizmo.lock = 0;
